@@ -7,13 +7,10 @@ import jakarta.persistence.Id;
 import lombok.*;
 
 @Entity
-@Getter
-@Setter
-@ToString
-@RequiredArgsConstructor
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Clientes {
+public class ClientesEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,4 +18,10 @@ public class Clientes {
 
     private String nome;
     private String telefone;
+    private Long cpf;
+    private String endereco;
+    private String bairro;
+    private String cidade;
+    private String estado;
+    private String numero;
 }
