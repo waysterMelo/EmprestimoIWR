@@ -6,12 +6,14 @@ import org.wayster.com.emprestimos.Enums.StatusPagamento;
 
 import java.time.LocalDate;
 
+@Table(name = "emprestimos")
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Emprestimo {
+@Builder
+public class EmprestimoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
