@@ -1,5 +1,6 @@
 package org.wayster.com.emprestimos.Controler;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class EmprestimoControler {
      * @return ResponseEntity com o DTO do empréstimo salvo e o status HTTP.
      */
     @PostMapping
-    public ResponseEntity<EmprestimoDto> salvarEmprestimo(@RequestBody EmprestimoDto emprestimoDto) {
+    public ResponseEntity<EmprestimoDto> salvarEmprestimo(@RequestBody @Valid EmprestimoDto emprestimoDto) {
         return emprestimoService.cadastrarEmprestimo(emprestimoDto)
                 .map(emprestimoSalvo -> ResponseEntity.status(HttpStatus.CREATED).body(emprestimoSalvo))
                 .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
