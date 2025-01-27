@@ -2,9 +2,9 @@ package org.wayster.com.emprestimos.Service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.wayster.com.emprestimos.Dto.ClientesDto;
 import org.wayster.com.emprestimos.Dto.EmprestimoDto;
 import org.wayster.com.emprestimos.EmprestimoUtils.EmprestimoUtils;
-import org.wayster.com.emprestimos.Entity.ClientesEntity;
 import org.wayster.com.emprestimos.Entity.EmprestimoEntity;
 import org.wayster.com.emprestimos.Enums.StatusPagamento;
 import org.wayster.com.emprestimos.Mapper.MapperEmprestimo;
@@ -12,6 +12,7 @@ import org.wayster.com.emprestimos.Repository.ClientesRepository;
 import org.wayster.com.emprestimos.Repository.EmprestimoRepository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -57,4 +58,6 @@ public class EmprestimoService {
                         return emprestimosMapper.toDto(emprestimoSalvo);
                     });
         }
+
+
 }

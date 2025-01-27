@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.wayster.com.emprestimos.Dto.EmprestimoDto;
+import org.wayster.com.emprestimos.Service.ClientesServices;
 import org.wayster.com.emprestimos.Service.EmprestimoService;
 
 @RestController
@@ -17,6 +18,7 @@ import org.wayster.com.emprestimos.Service.EmprestimoService;
 public class EmprestimoControler {
 
     private final EmprestimoService emprestimoService;
+    private final ClientesServices clientesServices;
 
 
     /**
@@ -32,5 +34,7 @@ public class EmprestimoControler {
                 .map(emprestimoSalvo -> ResponseEntity.status(HttpStatus.CREATED).body(emprestimoSalvo))
                 .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
     }
+
+
 
 }
