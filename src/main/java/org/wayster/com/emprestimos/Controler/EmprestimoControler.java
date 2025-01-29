@@ -4,21 +4,20 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.wayster.com.emprestimos.Dto.ClientesDto;
 import org.wayster.com.emprestimos.Dto.EmprestimoDto;
-import org.wayster.com.emprestimos.Service.ClientesServices;
+import org.wayster.com.emprestimos.Dto.ResumoEmprestimosVencidos;
 import org.wayster.com.emprestimos.Service.EmprestimoService;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/realizar-emprestimo")
+@RequestMapping("/emprestimo")
 @RequiredArgsConstructor
 public class EmprestimoControler {
 
     private final EmprestimoService emprestimoService;
-    private final ClientesServices clientesServices;
 
 
     /**
@@ -36,5 +35,51 @@ public class EmprestimoControler {
     }
 
 
+    /**
+     * Busca um cliente pelo CPF e seus empréstimos.
+     *
+     * @param cpf CPF do cliente.
+     * @return Dados do cliente e seus empréstimos.
+     */
+    @GetMapping("/{cpf}")
+    public ResponseEntity<ClientesDto> buscarClientePorCpf(@PathVariable Long cpf) {
+        return emprestimoService.buscarClientePorCpfComEmprestimos(cpf)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    /**
+     * Realiza a baixa do pagamento de um empréstimo.
+     *
+     * @param emprestimoId ID do empréstimo.
+     * @return Dados do empréstimo atualizado.
+     */
+    @PostMapping("/{emprestimoId}/baixar")
+    public ResponseEntity<EmprestimoDto> baixarPagamento(@PathVariable Long emprestimoId) {
+        return emprestimoService.realizarBaixaPagamento(emprestimoId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    /**
+     * Endpoint para buscar os empréstimos vencidos hoje.
+     *
+     * @return ResponseEntity contendo os empréstimos e as somas calculadas.
+     */
+    @GetMapping("/vencidos-hoje")
+    public ResponseEntity<ResumoEmprestimosVencidos> buscarEmprestimosVencidosHoje() {
+        ResumoEmprestimosVencidos resultado = emprestimoService.buscarEmprestimosVencidosHoje();
+        return ResponseEntity.ok(resultado);
+    }
+
+    @PutMapping("/{emprestimoId}/pagar-parcialmente")
+    public ResponseEntity<EmprestimoDto> pagarParcialmente(
+            @PathVariable Long emprestimoId,
+            @RequestParam double valorPago) {
+
+        return emprestimoService.pagarParcialmente(emprestimoId, valorPago)
+                .map(dto -> ResponseEntity.ok().body(dto))
+                .orElse(ResponseEntity.notFound().build());
+    }
 
 }

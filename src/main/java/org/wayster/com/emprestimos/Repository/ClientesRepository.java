@@ -46,4 +46,5 @@ public interface ClientesRepository extends JpaRepository<ClientesEntity, Long> 
      * @return True se existir, False caso contrário.
      */
     boolean existsByCpf(Long cpf);
+
 }

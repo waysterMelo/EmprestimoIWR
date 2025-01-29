@@ -28,6 +28,7 @@ public class EmprestimoEntity {
     private Double valorComJuros;
     private LocalDate dataEmprestimo;
     private LocalDate dataVencimento;
+    private String observacao;
 
     @Enumerated(EnumType.STRING)
     private StatusPagamento statusPagamento; // "PENDENTE", "PAGO", "ATRASADO"

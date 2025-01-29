@@ -29,6 +29,7 @@ public class MapperEmprestimo {
                         .dataEmprestimo(dto.getDataEmprestimo())
                         .dataVencimento(dto.getDataVencimento())
                         .statusPagamento(dto.getStatusPagamento())
+                        .observacao(dto.getObservacao())
                         .build()
                 ).orElse(null);
     }
@@ -52,6 +53,7 @@ public class MapperEmprestimo {
                         .dataEmprestimo(entity.getDataEmprestimo())
                         .dataVencimento(entity.getDataVencimento())
                         .statusPagamento(entity.getStatusPagamento())
+                        .observacao(entity.getObservacao())
                         .build()
                 ).orElse(null);
     }
@@ -93,7 +95,8 @@ public class MapperEmprestimo {
                         entity.getBairro(),
                         entity.getCidade(),
                         entity.getEstado(),
-                        entity.getNumero()
+                        entity.getNumero(),
+                        null
                 )).orElse(null);
     }
 }

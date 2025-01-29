@@ -1,9 +1,12 @@
 package org.wayster.com.emprestimos.Repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.wayster.com.emprestimos.Dto.EmprestimoDto;
 import org.wayster.com.emprestimos.Entity.EmprestimoEntity;
+import org.wayster.com.emprestimos.Enums.StatusPagamento;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,5 +29,14 @@ public interface EmprestimoRepository extends JpaRepository<EmprestimoEntity, Lo
      * @return true se existir pelo menos um empréstimo.
      */
     boolean existsByClienteId(Long clienteId);
+
+    /**
+     * Busca todos os empréstimos vencidos em uma data específica.
+     *
+     * @param dataVencimento A data de vencimento dos empréstimos.
+     * @return Lista de empréstimos vencidos.
+     */
+    List<EmprestimoEntity> findByDataVencimento(LocalDate dataVencimento);
+
 
 }

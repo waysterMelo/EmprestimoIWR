@@ -33,6 +33,8 @@ public class EmprestimoDto {
     @Future(message = "A data de vencimento deve ser uma data futura.")
     private LocalDate dataVencimento;
 
+    private String observacao;
+
     private StatusPagamento statusPagamento;
 
     }
