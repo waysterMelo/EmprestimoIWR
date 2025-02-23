@@ -1,111 +1,200 @@
 package org.wayster.com.emprestimos.Service;
 
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.wayster.com.emprestimos.Entity.EmprestimoEntity;
-import org.wayster.com.emprestimos.Repository.EmprestimoRepository;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class WhatsAppService {
 
     @Value("${whatsapp.api.url}")
     private String whatsappApiUrl;
 
-    @Value("${whatsapp.api.token}")
-    private String whatsappToken;
+    @Value("${whatsapp.api.version}")
+    private String apiVersion;
 
     @Value("${whatsapp.api.phone-number-id}")
     private String phoneNumberId;
 
-    @Value("${whatsapp.cloudapi.version}")
-    private String apiVersion;
+    @Value("${whatsapp.api.token}")
+    private String whatsappToken;
 
+    private static final Logger logger = LoggerFactory.getLogger(WhatsAppService.class);
     private final RestTemplate restTemplate = new RestTemplate();
-    private final EmprestimoRepository emprestimoRepository;
 
-    public WhatsAppService(EmprestimoRepository emprestimoRepository) {
-        this.emprestimoRepository = emprestimoRepository;
-    }
 
-    /**
-     * Envia uma mensagem via WhatsApp.
-     *
-     * @param numeroDestino Número do cliente no formato internacional (ex: +5511999999999)
-     * @param mensagem      Conteúdo da mensagem personalizada.
-     */
-    public void enviarMensagemWhatsApp(String numeroDestino, String mensagem) {
+    public void enviarTemplateVencendoCliente(String numeroCliente, String nomeCliente, String valor, String dataVencimento) {
+
+        // Formata o número adequadamente
+        String numeroFormatado = formatarNumeroInternacional(numeroCliente);
+
+        // Monta a URL da API
         String url = String.format("%s/%s/%s/messages", whatsappApiUrl, apiVersion, phoneNumberId);
-
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(whatsappToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(whatsappToken);
 
+        // Monta o corpo do template
+        Map<String, Object> templateBody = Map.of(
+                "name", "emprestimo_vencendo_cliente",  // exatamente o nome que você cadastrou
+                "language", Map.of("code", "pt_BR"),
+                "components", List.of(
+                        Map.of(
+                                "type", "body",
+                                "parameters", List.of(
+                                        Map.of("type", "text", "text", nomeCliente),
+                                        Map.of("type", "text", "text", valor),
+                                        Map.of("type", "text", "text", dataVencimento)
+                                )
+                        )
+                )
+        );
+
+        // Monta o payload principal
         Map<String, Object> payload = Map.of(
                 "messaging_product", "whatsapp",
-                "to", numeroDestino,
+                "to", numeroFormatado,
                 "type", "template",
-                "template", Map.of(
-                        "name", "pagamento_pendente",
-                        "language", Map.of("code", "pt_BR")
-                )
+                "template", templateBody
         );
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
 
         try {
             ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-            System.out.println("Resposta da API: " + response.getBody());
-        } catch (HttpClientErrorException e) {
-            System.err.println("Erro na requisição: " + e.getStatusCode());
-            System.err.println("Detalhes: " + e.getResponseBodyAsString());
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                logger.info("✅ Template de vencimento (cliente) enviado para {}", numeroFormatado);
+            } else {
+                logger.error("❌ Erro enviando template (cliente). Status: {} - {}",
+                        response.getStatusCode(), response.getBody());
+            }
+        } catch (Exception e) {
+            logger.error("❌ Exceção ao enviar template (cliente): {}", e.getMessage());
         }
     }
 
-    /**
-     * Busca os empréstimos vencendo hoje e envia notificações para os clientes via WhatsApp.
-     * Este método será executado automaticamente todos os dias às 08:00 da manhã.
-     */
-    @Scheduled(cron = "0 0 8 * * ?") // Agendado para rodar às 08:00 da manhã todos os dias
-    public void enviarNotificacoesDeVencimento() {
-        LocalDate hoje = LocalDate.now();
 
-        // Busca empréstimos vencendo hoje
-        List<EmprestimoEntity> emprestimosVencendoHoje = emprestimoRepository.findByDataVencimento(hoje);
+    public void enviarTemplateVencendoAgiota(String numeroAgiota, String nomeCliente, String valor, String dataVencimento) {
 
-        if (emprestimosVencendoHoje.isEmpty()) {
-            System.out.println("✅ Nenhum empréstimo vencendo hoje.");
-            return;
+        String numeroFormatado = formatarNumeroInternacional(numeroAgiota);
+
+        String url = String.format("%s/%s/%s/messages", whatsappApiUrl, apiVersion, phoneNumberId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(whatsappToken);
+
+        Map<String, Object> templateBody = Map.of(
+                "name", "emprestimo_vencendo_agiota",
+                "language", Map.of("code", "pt_BR"),
+                "components", List.of(
+                        Map.of(
+                                "type", "body",
+                                "parameters", List.of(
+                                        Map.of("type", "text", "text", nomeCliente),
+                                        Map.of("type", "text", "text", valor),
+                                        Map.of("type", "text", "text", dataVencimento)
+                                )
+                        )
+                )
+        );
+
+        Map<String, Object> payload = Map.of(
+                "messaging_product", "whatsapp",
+                "to", numeroFormatado,
+                "type", "template",
+                "template", templateBody
+        );
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                logger.info("✅ Template de vencimento (agiota) enviado para {}", numeroFormatado);
+            } else {
+                logger.error("❌ Erro enviando template (agiota). Status: {} - {}",
+                        response.getStatusCode(), response.getBody());
+            }
+        } catch (Exception e) {
+            logger.error("❌ Exceção ao enviar template (agiota): {}", e.getMessage());
         }
-
-        // Enviar mensagem para cada cliente com empréstimo vencendo
-        emprestimosVencendoHoje.forEach(emprestimo -> {
-            String numeroCliente = emprestimo.getCliente().getTelefone();
-            Double valorDevido = emprestimo.getValorComJuros();
-            String mensagem = String.format(
-                    "📢 Olá, %s!\nSeu empréstimo de R$ %.2f vence hoje (%s). " +
-                            "Por favor, efetue o pagamento para evitar juros adicionais.",
-                    emprestimo.getCliente().getNome(),
-                    valorDevido,
-                    hoje
-            );
-
-            enviarMensagemWhatsApp(numeroCliente, mensagem);
-            System.out.println("📨 Mensagem enviada para: " + numeroCliente);
-        });
     }
 
+    public void enviarTemplateEmprestimo(String telefone, String valorCreditado, String valorComJuros, String dataVencimento) {
+
+        String numeroFormatado = formatarNumeroInternacional(telefone);
+
+        String url = String.format("%s/%s/%s/messages",
+                whatsappApiUrl, apiVersion, phoneNumberId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(whatsappToken);
+
+        // Monta a parte do "template" no JSON:
+        Map<String, Object> templateBody = Map.of(
+                "name", "emprestimo_realizado",
+                "language", Map.of("code", "pt_BR"),
+                "components", List.of(
+                        Map.of(
+                                "type", "body",
+                                "parameters", List.of(
+                                        // Se você tiver 3 placeholders no corpo do template,
+                                        // passe 3 parâmetros na ordem exata
+                                        Map.of("type", "text", "text", valorCreditado),
+                                        Map.of("type", "text", "text", valorComJuros),
+                                        Map.of("type", "text", "text", dataVencimento)
+                                )
+                        )
+                )
+        );
+
+        // Constrói o payload principal
+        Map<String, Object> payload = Map.of(
+                "messaging_product", "whatsapp",
+                "to", numeroFormatado,
+                "type", "template",
+                "template", templateBody
+        );
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                logger.info("✅ Template emprestimo_realizado enviado para {}", numeroFormatado);
+            } else {
+                logger.error("❌ Erro ao enviar template emprestimo_realizado. Status: {} - {}",
+                        response.getStatusCode(), response.getBody());
+            }
+        } catch (Exception e) {
+            logger.error("❌ Exceção ao enviar mensagem via template: {}", e.getMessage());
+        }
+    }
+
+
+
+    private String formatarNumeroInternacional(String numero) {
+        if (!numero.startsWith("+")) {
+            // Aqui assumimos que todos os números são do Brasil; se houver casos internacionais,
+            // você pode aprimorar a lógica de acordo com sua demanda corporativa.
+            numero = "+55" + numero;
+        }
+        return numero;
+    }
 }

@@ -27,67 +27,45 @@ public class EmprestimoService {
     private final WhatsAppService whatsAppService;
 
     /**
-     * Cadastra um novo empréstimo e envia notificação via WhatsApp.
-     *
-     * @param emprestimoDto Dados do empréstimo a ser cadastrado.
-     * @return O DTO do empréstimo cadastrado.
+     * Cadastra um novo empréstimo para o cliente e envia notificação via WhatsApp.
      */
     public Optional<EmprestimoDto> cadastrarEmprestimo(EmprestimoDto emprestimoDto) {
         return clientesRepository.findById(emprestimoDto.getClienteId())
                 .map(cliente -> {
-                    // Valida se o cliente tem um número de telefone válido
-                    String telefoneCliente = Optional.ofNullable(cliente.getTelefone())
-                            .map(tel -> tel.replaceAll("[^0-9]", "")) // Remove caracteres inválidos
-                            .orElseThrow(() -> new IllegalArgumentException("O cliente não possui um número de telefone válido!"));
-
                     // Calcula o valor com juros
-                    double valorComJuros = EmprestimoUtils.calcularValorComJuros(emprestimoDto.getValorEmprestimo(), emprestimoDto.getTaxaJuros());
+                    double valorComJuros = EmprestimoUtils.calcularValorComJuros(
+                            emprestimoDto.getValorEmprestimo(),
+                            emprestimoDto.getTaxaJuros()
+                    );
+
+                    // Preenche campos do DTO
                     emprestimoDto.setValorComJuros(valorComJuros);
+                    emprestimoDto.setDataEmprestimo(LocalDate.now());
+                    emprestimoDto.setDataVencimento(emprestimoDto.getDataEmprestimo().plusDays(30));
+                    emprestimoDto.setStatusPagamento(StatusPagamento.PENDENTE);
 
-                    // Define a data do empréstimo como a data atual, caso não esteja preenchida
-                    emprestimoDto.setDataEmprestimo(Optional.ofNullable(emprestimoDto.getDataEmprestimo()).orElse(LocalDate.now()));
-
-                    // Define a data de vencimento para 30 dias após a data do empréstimo, caso não esteja preenchida
-                    emprestimoDto.setDataVencimento(Optional.ofNullable(emprestimoDto.getDataVencimento())
-                            .orElse(emprestimoDto.getDataEmprestimo().plusDays(30)));
-
-                    // Define o status do pagamento como PENDENTE por padrão
-                    emprestimoDto.setStatusPagamento(Optional.ofNullable(emprestimoDto.getStatusPagamento()).orElse(StatusPagamento.PENDENTE));
-
-                    // Mapeia o DTO para a entidade do empréstimo
+                    // Converte DTO para Entity e salva no banco
                     EmprestimoEntity emprestimoEntity = emprestimosMapper.toEntity(emprestimoDto, cliente);
-
-                    // Salva o empréstimo no banco de dados
                     EmprestimoEntity emprestimoSalvo = emprestimoRepository.save(emprestimoEntity);
 
-                    // Formata mensagens para envio via WhatsApp
-                    String mensagemCliente = String.format(
-                            "Olá %s, seu empréstimo de R$%.2f foi aprovado. Data de vencimento: %s.",
-                            cliente.getNome(), emprestimoSalvo.getValorEmprestimo(), emprestimoSalvo.getDataVencimento());
+                    // Envia via template do WhatsApp (sem valor pago)
+                    whatsAppService.enviarTemplateEmprestimo(
+                            cliente.getTelefone(),
+                            String.format("%.2f", emprestimoSalvo.getValorEmprestimo()),  // valor_creditado
+                            String.format("%.2f", emprestimoSalvo.getValorComJuros()),    // valor_com_juros
+                            emprestimoSalvo.getDataVencimento().toString()               // data_vencimento
+                    );
 
-                    String mensagemAgiota = String.format(
-                            "Novo empréstimo cadastrado! Cliente: %s, Valor: R$%.2f, Vence em: %s.",
-                            cliente.getNome(), emprestimoSalvo.getValorEmprestimo(), emprestimoSalvo.getDataVencimento());
-
-                    // LOG: Verificando o número antes de enviar
-                    System.out.println("Enviando mensagem para o cliente: " + telefoneCliente);
-                    System.out.println("Enviando mensagem para o agiota: 5531998956974");
-
-                    // Enviar mensagens para o cliente e o agiota
-                    whatsAppService.enviarMensagemWhatsApp(telefoneCliente, mensagemCliente);
-                    whatsAppService.enviarMensagemWhatsApp("+5531998956974", mensagemAgiota); // Número do agiota
-
-                    // Retorna o empréstimo cadastrado como DTO
+                    // Retorna DTO
                     return emprestimosMapper.toDto(emprestimoSalvo);
+                })
+                .or(() -> {
+                    throw new IllegalArgumentException("❌ Cliente não encontrado para o ID fornecido.");
                 });
     }
 
-
     /**
-     * Busca um cliente pelo CPF e retorna seus dados.
-     *
-     * @param cpf CPF do cliente.
-     * @return Dados do cliente e seus empréstimos, se encontrados.
+     * Busca um cliente pelo CPF e retorna seus dados + lista de empréstimos.
      */
     public Optional<ClientesDto> buscarClientePorCpfComEmprestimos(Long cpf){
         return clientesRepository.findByCpf(cpf)
@@ -103,86 +81,80 @@ public class EmprestimoService {
     }
 
     /**
-     * Realiza a baixa do pagamento de um empréstimo.
-     *
-     * @param emprestimoId ID do empréstimo.
-     * @return Dados atualizados do empréstimo.
+     * Realiza a baixa total do pagamento, alterando o status para PAGO.
      */
     public Optional<EmprestimoDto> realizarBaixaPagamento(Long emprestimoId){
         return emprestimoRepository.findById(emprestimoId)
                 .map(emprestimo -> {
-                    // Atualiza o status do pagamento
                     emprestimo.setStatusPagamento(StatusPagamento.PAGO);
                     EmprestimoEntity emprestimoAtualizado = emprestimoRepository.save(emprestimo);
                     return mapperEmprestimo.toDto(emprestimoAtualizado);
                 });
     }
 
-
     /**
-     * Retorna todos os empréstimos vencidos na data atual e calcula a soma dos valores emprestados
-     * e a soma dos valores a receber com juros.
-     *
-     * @return Objeto contendo a lista de empréstimos vencidos e as somas calculadas.
+     * Obtém os empréstimos que vencem na data atual e retorna um resumo.
      */
     public ResumoEmprestimosVencidos buscarEmprestimosVencidosHoje(){
-        LocalDate hoje = LocalDate.now(); // Data atual
+        LocalDate hoje = LocalDate.now();
         List<EmprestimoEntity> emprestimosVencidos = emprestimoRepository.findByDataVencimento(hoje);
 
         // Mapeia para DTO
-        List<EmprestimoDto> emprestimosDto = emprestimosVencidos.stream().map(mapperEmprestimo::toDto).toList();
+        List<EmprestimoDto> emprestimosDto = emprestimosVencidos
+                .stream()
+                .map(mapperEmprestimo::toDto)
+                .toList();
 
-        // Calcula as somas
-        double valoresEmprestados = emprestimosVencidos.stream()
-                .mapToDouble(EmprestimoEntity::getValorEmprestimo).sum();
+        // Calcula somas
+        double valoresEmprestados = emprestimosVencidos
+                .stream()
+                .mapToDouble(EmprestimoEntity::getValorEmprestimo)
+                .sum();
 
-        double valoresAReceber = emprestimosVencidos.stream()
-                .mapToDouble(EmprestimoEntity::getValorComJuros).sum();
+        double valoresAReceber = emprestimosVencidos
+                .stream()
+                .mapToDouble(EmprestimoEntity::getValorComJuros)
+                .sum();
 
         double lucro = valoresAReceber - valoresEmprestados;
 
         return new ResumoEmprestimosVencidos(emprestimosDto, valoresEmprestados, valoresAReceber, lucro);
-
     }
 
     /**
-     * Realiza um pagamento parcial de um empréstimo.
-     *
-     * @param emprestimoId O ID do empréstimo.
-     * @param valorPago O valor pago pelo cliente.
-     * @return O DTO do empréstimo atualizado.
+     * Efetua pagamento parcial, atualizando valor devido e status se quitado.
      */
     public Optional<EmprestimoDto> pagarParcialmente(Long emprestimoId, Double valorPago){
         return emprestimoRepository.findById(emprestimoId)
                 .map(emprestimo -> {
-                    // Verifica se o pagamento não ultrapassa o valor devido
-                    if (valorPago <=0 || valorPago > emprestimo.getValorComJuros()){
+                    // Verifica se o pagamento é válido
+                    if (valorPago <= 0 || valorPago > emprestimo.getValorComJuros()) {
                         throw new IllegalArgumentException("O valor pago é inválido ou excede o valor devido.");
                     }
-                    // Atualiza o valor devido
+                    // Subtrai do valor com juros
                     double novoValorDevido = emprestimo.getValorComJuros() - valorPago;
                     emprestimo.setValorComJuros(novoValorDevido);
 
-                    // Atualiza a observação indicando o pagamento parcial
+                    // Atualiza observação
                     String observacaoAtual = Optional.ofNullable(emprestimo.getObservacao()).orElse("");
-                    String novaObservacao = String.format("Pagamento parcial de R$%.2f realizado em %s. Valor restante: R$%.2f.", valorPago,
-                            LocalDate.now(), novoValorDevido);
-                    emprestimo.setObservacao(observacaoAtual + (observacaoAtual.isEmpty() ? "" : " ") + novaObservacao);
+                    String novaObservacao = String.format(
+                            "Pagamento parcial de R$%.2f realizado em %s. Valor restante: R$%.2f.",
+                            valorPago, LocalDate.now(), novoValorDevido
+                    );
+                    emprestimo.setObservacao(
+                            observacaoAtual + (observacaoAtual.isEmpty() ? "" : " ") + novaObservacao
+                    );
 
-                    // Atualiza o status para PAGO se o valor devido for zerado
+                    // Se quitar tudo, marca como PAGO
                     if (novoValorDevido == 0) {
                         emprestimo.setStatusPagamento(StatusPagamento.PAGO);
                     }
 
-                    // Salva as alterações no banco de dados
+                    // Salva alterações
                     emprestimoRepository.save(emprestimo);
 
-                    // Retorna o DTO atualizado
+                    // Retorna DTO atualizado
                     return mapperEmprestimo.toDto(emprestimo);
-
                 });
-
     }
-
-
 }

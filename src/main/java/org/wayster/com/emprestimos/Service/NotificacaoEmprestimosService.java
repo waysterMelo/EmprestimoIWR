@@ -1,5 +1,7 @@
 package org.wayster.com.emprestimos.Service;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.wayster.com.emprestimos.Entity.EmprestimoEntity;
@@ -9,15 +11,14 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class NotificacaoEmprestimosService {
 
     private final EmprestimoRepository emprestimoRepository;
     private final WhatsAppService whatsAppService;
 
-    public NotificacaoEmprestimosService(EmprestimoRepository emprestimoRepository, WhatsAppService whatsAppService) {
-        this.emprestimoRepository = emprestimoRepository;
-        this.whatsAppService = whatsAppService;
-    }
+    @Value("${whatsapp.agiota.phone}")
+    private String numeroAgiota;
 
     /**
      * Executa diariamente às 08:00 e envia lembretes de vencimento para clientes e agiotas.
@@ -28,17 +29,33 @@ public class NotificacaoEmprestimosService {
         List<EmprestimoEntity> emprestimosVencendo = emprestimoRepository.findByDataVencimento(hoje);
 
         for (EmprestimoEntity emprestimo : emprestimosVencendo) {
-            String mensagemCliente = String.format(
-                    "Olá %s, lembrete: Seu empréstimo de R$%.2f vence hoje (%s). Evite juros!",
-                    emprestimo.getCliente().getNome(), emprestimo.getValorComJuros(), emprestimo.getDataVencimento());
+            String nomeCliente = emprestimo.getCliente().getNome();
+            String telefoneCliente = emprestimo.getCliente().getTelefone();
+            String valor = String.format("%.2f", emprestimo.getValorComJuros());
+            String dataVencimento = emprestimo.getDataVencimento().toString();
 
-            String mensagemAgiota = String.format(
-                    "Atenção: O cliente %s tem um pagamento de R$%.2f vencendo hoje (%s).",
-                    emprestimo.getCliente().getNome(), emprestimo.getValorComJuros(), emprestimo.getDataVencimento());
+            // Enviar template para o cliente
+            whatsAppService.enviarTemplateVencendoCliente(
+                    telefoneCliente,
+                    nomeCliente,
+                    valor,
+                    dataVencimento
+            );
 
-            // Enviar mensagens
-            whatsAppService.enviarMensagemWhatsApp(emprestimo.getCliente().getTelefone(), mensagemCliente);
-            whatsAppService.enviarMensagemWhatsApp("+5531998956974", mensagemAgiota);
+            // Enviar template para o agiota
+            whatsAppService.enviarTemplateVencendoAgiota(
+                    numeroAgiota,
+                    nomeCliente,
+                    valor,
+                    dataVencimento
+            );
         }
     }
+
+
+
+
+
+
+
 }
