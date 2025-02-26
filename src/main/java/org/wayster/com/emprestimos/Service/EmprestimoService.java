@@ -13,6 +13,7 @@ import org.wayster.com.emprestimos.Repository.ClientesRepository;
 import org.wayster.com.emprestimos.Repository.EmprestimoRepository;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,6 +53,7 @@ public class EmprestimoService {
                     whatsAppService.enviarTemplateEmprestimo(
                             cliente.getTelefone(),
                             String.format("%.2f", emprestimoSalvo.getValorEmprestimo()),  // valor_creditado
+                            String.format("%.2f", emprestimoSalvo.getValorEmprestimo()), // valor pego
                             String.format("%.2f", emprestimoSalvo.getValorComJuros()),    // valor_com_juros
                             emprestimoSalvo.getDataVencimento().toString()               // data_vencimento
                     );

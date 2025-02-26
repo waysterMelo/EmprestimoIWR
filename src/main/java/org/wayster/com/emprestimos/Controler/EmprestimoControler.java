@@ -10,8 +10,6 @@ import org.wayster.com.emprestimos.Dto.EmprestimoDto;
 import org.wayster.com.emprestimos.Dto.ResumoEmprestimosVencidos;
 import org.wayster.com.emprestimos.Service.EmprestimoService;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/emprestimo")
 @RequiredArgsConstructor

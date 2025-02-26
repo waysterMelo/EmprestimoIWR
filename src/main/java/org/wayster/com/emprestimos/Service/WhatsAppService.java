@@ -135,18 +135,15 @@ public class WhatsAppService {
         }
     }
 
-    public void enviarTemplateEmprestimo(String telefone, String valorCreditado, String valorComJuros, String dataVencimento) {
-
+    public void enviarTemplateEmprestimo(String telefone, String valorCreditado, String valorPego, String valorDevido, String dataVencimento) {
         String numeroFormatado = formatarNumeroInternacional(telefone);
-
-        String url = String.format("%s/%s/%s/messages",
-                whatsappApiUrl, apiVersion, phoneNumberId);
+        String url = String.format("%s/%s/%s/messages", whatsappApiUrl, apiVersion, phoneNumberId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(whatsappToken);
 
-        // Monta a parte do "template" no JSON:
+        // Parâmetros ajustados para usar "text" com números formatados
         Map<String, Object> templateBody = Map.of(
                 "name", "emprestimo_realizado",
                 "language", Map.of("code", "pt_BR"),
@@ -154,17 +151,20 @@ public class WhatsAppService {
                         Map.of(
                                 "type", "body",
                                 "parameters", List.of(
-                                        // Se você tiver 3 placeholders no corpo do template,
-                                        // passe 3 parâmetros na ordem exata
-                                        Map.of("type", "text", "text", valorCreditado),
-                                        Map.of("type", "text", "text", valorComJuros),
-                                        Map.of("type", "text", "text", dataVencimento)
+                                        // Use "text" e formate os números com ponto decimal
+                                        Map.of("type", "text", "text", valorCreditado.replace(",", ".")),
+                                        Map.of("type", "text", "text", valorPego.replace(",", ".")),
+                                        Map.of("type", "text", "text", valorDevido.replace(",", ".")),
+                                        // Data no formato correto
+                                        Map.of(
+                                                "type", "date_time",
+                                                "date_time", Map.of("fallback_value", dataVencimento)
+                                        )
                                 )
                         )
                 )
         );
 
-        // Constrói o payload principal
         Map<String, Object> payload = Map.of(
                 "messaging_product", "whatsapp",
                 "to", numeroFormatado,
@@ -177,13 +177,13 @@ public class WhatsAppService {
         try {
             ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
             if (response.getStatusCode().is2xxSuccessful()) {
-                logger.info("✅ Template emprestimo_realizado enviado para {}", numeroFormatado);
+                logger.info("✅ Template enviado para {}", numeroFormatado);
             } else {
-                logger.error("❌ Erro ao enviar template emprestimo_realizado. Status: {} - {}",
+                logger.error("❌ Erro ao enviar template. Status: {} - Resposta: {}",
                         response.getStatusCode(), response.getBody());
             }
         } catch (Exception e) {
-            logger.error("❌ Exceção ao enviar mensagem via template: {}", e.getMessage());
+            logger.error("❌ Exceção ao enviar mensagem: {}", e.getMessage());
         }
     }
 
