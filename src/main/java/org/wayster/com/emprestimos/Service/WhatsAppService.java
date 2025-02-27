@@ -145,7 +145,7 @@ public class WhatsAppService {
 
         // Parâmetros ajustados para usar "text" com números formatados
         Map<String, Object> templateBody = Map.of(
-                "name", "emprestimo_realizado",
+                "name", "emprestimo_creditado",
                 "language", Map.of("code", "pt_BR"),
                 "components", List.of(
                         Map.of(
@@ -177,7 +177,7 @@ public class WhatsAppService {
         try {
             ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
             if (response.getStatusCode().is2xxSuccessful()) {
-                logger.info("✅ Template enviado para {}", numeroFormatado);
+                logger.info("✅ Template de empréstimo creditado enviado para {}", numeroFormatado);
             } else {
                 logger.error("❌ Erro ao enviar template. Status: {} - Resposta: {}",
                         response.getStatusCode(), response.getBody());
@@ -185,6 +185,7 @@ public class WhatsAppService {
         } catch (Exception e) {
             logger.error("❌ Exceção ao enviar mensagem: {}", e.getMessage());
         }
+
     }
 
 
@@ -193,7 +194,7 @@ public class WhatsAppService {
         if (!numero.startsWith("+")) {
             // Aqui assumimos que todos os números são do Brasil; se houver casos internacionais,
             // você pode aprimorar a lógica de acordo com sua demanda corporativa.
-            numero = "+55" + numero;
+            numero = "55" + numero;
         }
         return numero;
     }
