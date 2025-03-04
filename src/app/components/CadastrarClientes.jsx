@@ -1,7 +1,8 @@
 import React, { useRef, useState } from "react";
 import { DollarSign, User, Phone, Mail, CreditCard, Upload, X, MapPin, Home } from "lucide-react";
-import "../css/CadastrarClientes.css";
+import "../css/CadastrarClientes.css"; // Pode manter se tiver outros estilos
 import ClientesServices from "../services/ClientesServices";
+import { Modal, Button } from "react-bootstrap";
 
 const CadastrarClientes = () => {
     const service = useRef(new ClientesServices()).current;
@@ -21,6 +22,7 @@ const CadastrarClientes = () => {
     const [previewFoto, setPreviewFoto] = useState(null);
     const [mensagem, setMensagem] = useState("");
     const [sucesso, setSucesso] = useState(false);
+    const [modalAberto, setModalAberto] = useState(false);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -51,11 +53,13 @@ const CadastrarClientes = () => {
         e.preventDefault();
         setMensagem("");
         setSucesso(false);
+        setModalAberto(false);
 
         try {
             const response = await service.cadastrarCliente(formData, foto);
             setMensagem("Cliente cadastrado com sucesso!");
             setSucesso(true);
+            setModalAberto(true);
             setFormData({
                 nome: "",
                 email: "",
@@ -73,7 +77,13 @@ const CadastrarClientes = () => {
         } catch (error) {
             setMensagem(error.message);
             setSucesso(false);
+            setModalAberto(true);
         }
+    };
+
+    const fecharModal = () => {
+        setModalAberto(false);
+        setMensagem("");
     };
 
     const campos = [
@@ -93,12 +103,6 @@ const CadastrarClientes = () => {
         <div className="background-money d-flex justify-content-center align-items-center">
             <div className="form-container">
                 <h2 className="form-title">Cadastrar Novo Cliente</h2>
-
-                {mensagem && (
-                    <div className={`message ${sucesso ? "success" : "error"}`}>
-                        {mensagem}
-                    </div>
-                )}
 
                 <form onSubmit={handleSubmit} className="row g-3">
                     <div className="col-12 text-center mb-3">
@@ -139,7 +143,7 @@ const CadastrarClientes = () => {
                     </div>
 
                     {campos.map(({ id, label, icon }, index) => (
-                        <div key={index} className="col-md-4">
+                        <div key={index} className="col-md-6">
                             <label htmlFor={id} className="form-label d-flex align-items-center">
                                 {icon}
                                 <span className="ms-2">{label}</span>
@@ -167,6 +171,24 @@ const CadastrarClientes = () => {
                 <p className="privacy-text mt-3">
                     Seus dados estão protegidos de acordo com nossa política de privacidade.
                 </p>
+
+                {/* Modal do Bootstrap com suporte a mensagens longas */}
+                <Modal show={modalAberto} onHide={fecharModal} centered size="lg"> {/* Aumentei o tamanho para "lg" */}
+                    <Modal.Header
+                        className={sucesso ? "bg-success text-white" : "bg-danger text-white"}
+                        closeButton
+                    >
+                        <Modal.Title>{sucesso ? "Sucesso" : "Erro"}</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body style={{ maxHeight: "400px", overflowY: "auto" }}> {/* Adicionei scroll se necessário */}
+                        <p>{mensagem}</p>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={fecharModal}>
+                            Fechar
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
             </div>
         </div>
     );
