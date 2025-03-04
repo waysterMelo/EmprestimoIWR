@@ -52,12 +52,6 @@ const CadastrarClientes = () => {
         setMensagem("");
         setSucesso(false);
 
-        if (!validarCPF(formData.cpf)) {
-            setMensagem("CPF inválido!");
-            setSucesso(false);
-            return;
-        }
-
         try {
             const response = await service.cadastrarCliente(formData, foto);
             setMensagem("Cliente cadastrado com sucesso!");
@@ -82,30 +76,21 @@ const CadastrarClientes = () => {
         }
     };
 
-    const validarCPF = (cpf) => {
-        if (!cpf) return false;
-        cpf = cpf.replace(/[^\d]/g, "");
-        if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
-
-        let soma = 0;
-        for (let i = 0; i < 9; i++) {
-            soma += parseInt(cpf.charAt(i)) * (10 - i);
-        }
-        let resto = soma % 11;
-        let digito1 = resto < 2 ? 0 : 11 - resto;
-
-        soma = 0;
-        for (let i = 0; i < 10; i++) {
-            soma += parseInt(cpf.charAt(i)) * (11 - i);
-        }
-        resto = soma % 11;
-        let digito2 = resto < 2 ? 0 : 11 - resto;
-
-        return digito1 === parseInt(cpf.charAt(9)) && digito2 === parseInt(cpf.charAt(10));
-    };
+    const campos = [
+        { id: "nome", label: "Nome Completo", icon: <User size={18} /> },
+        { id: "email", label: "E-mail", icon: <Mail size={18} /> },
+        { id: "telefone", label: "Telefone", icon: <Phone size={18} /> },
+        { id: "cpf", label: "CPF", icon: <CreditCard size={18} /> },
+        { id: "limitePagamento", label: "Limite de Pagamento", icon: <DollarSign size={18} /> },
+        { id: "endereco", label: "Endereço", icon: <MapPin size={18} /> },
+        { id: "bairro", label: "Bairro", icon: <Home size={18} /> },
+        { id: "cidade", label: "Cidade", icon: <MapPin size={18} /> },
+        { id: "estado", label: "Estado", icon: <MapPin size={18} /> },
+        { id: "numero", label: "Número", icon: <Home size={18} /> }
+    ];
 
     return (
-        <div className="background-money">
+        <div className="background-money d-flex justify-content-center align-items-center">
             <div className="form-container">
                 <h2 className="form-title">Cadastrar Novo Cliente</h2>
 
@@ -115,82 +100,73 @@ const CadastrarClientes = () => {
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit}>
-                    <div className="foto-upload-container">
-                        <div className="foto-preview-area">
-                            {previewFoto ? (
-                                <div className="foto-preview-wrapper">
-                                    <img src={previewFoto} alt="Preview" className="foto-preview" />
-                                    <button
-                                        type="button"
-                                        className="remove-foto-btn"
-                                        onClick={removerFoto}
-                                        aria-label="Remover foto"
-                                    >
-                                        <X size={20} />
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="foto-upload-placeholder">
-                                    <User size={64} className="user-icon" />
-                                    <span>Foto do Cliente</span>
-                                </div>
-                            )}
-                        </div>
-
-                        <label htmlFor="foto-upload" className="foto-upload-btn">
-                            <Upload size={16} />
-                            <span>Escolher Foto</span>
-                            <input
-                                type="file"
-                                id="foto-upload"
-                                accept="image/*"
-                                onChange={handleFotoChange}
-                                className="hidden-input"
-                            />
-                        </label>
-                    </div>
-
-                    <div className="input-grid">
-                        {[
-                            { id: "nome", label: "Nome Completo", icon: <User size={18} />, placeholder: "Digite o nome completo" },
-                            { id: "email", label: "E-mail", icon: <Mail size={18} />, placeholder: "email@exemplo.com", type: "email" },
-                            { id: "telefone", label: "Telefone", icon: <Phone size={18} />, placeholder: "(99) 99999-9999", type: "tel" },
-                            { id: "cpf", label: "CPF", icon: <User size={18} />, placeholder: "000.000.000-00" },
-                            { id: "limitePagamento", label: "Limite de Pagamento", icon: <DollarSign size={18} />, placeholder: "R$ 0,00", type: "number" },
-                            { id: "endereco", label: "Endereço", icon: <MapPin size={18} />, placeholder: "Rua, Avenida, etc." },
-                            { id: "bairro", label: "Bairro", icon: <Home size={18} />, placeholder: "Digite o bairro" },
-                            { id: "cidade", label: "Cidade", icon: <MapPin size={18} />, placeholder: "Digite a cidade" },
-                            { id: "estado", label: "Estado", icon: <MapPin size={18} />, placeholder: "Digite o estado" },
-                            { id: "numero", label: "Número", icon: <Home size={18} />, placeholder: "Número da residência" }
-                        ].map(({ id, label, icon, placeholder, type = "text" }) => (
-                            <div className="input-group" key={id}>
-                                <label htmlFor={id}>
-                                    {icon}
-                                    <span>{label}</span>
-                                </label>
-                                <input
-                                    type={type}
-                                    id={id}
-                                    name={id}
-                                    value={formData[id]}
-                                    onChange={handleInputChange}
-                                    placeholder={placeholder}
-                                    required
-                                />
+                <form onSubmit={handleSubmit} className="row g-3">
+                    <div className="col-12 text-center mb-3">
+                        <div className="foto-upload-container">
+                            <div className="foto-preview-area">
+                                {previewFoto ? (
+                                    <div className="foto-preview-wrapper">
+                                        <img src={previewFoto} alt="Preview" className="foto-preview" />
+                                        <button
+                                            type="button"
+                                            className="remove-foto-btn"
+                                            onClick={removerFoto}
+                                            aria-label="Remover foto"
+                                        >
+                                            <X size={20} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="foto-upload-placeholder">
+                                        <User size={64} className="user-icon" />
+                                        <span>Foto do Cliente</span>
+                                    </div>
+                                )}
                             </div>
-                        ))}
+
+                            <label htmlFor="foto-upload" className="foto-upload-btn">
+                                <Upload size={16} />
+                                <span>Escolher Foto</span>
+                                <input
+                                    type="file"
+                                    id="foto-upload"
+                                    accept="image/*"
+                                    onChange={handleFotoChange}
+                                    className="hidden-input"
+                                />
+                            </label>
+                        </div>
                     </div>
 
-                    <button type="submit" className="submit-btn">
-                        <CreditCard size={18} />
-                        <span>Cadastrar Cliente</span>
-                    </button>
+                    {campos.map(({ id, label, icon }, index) => (
+                        <div key={index} className="col-md-4">
+                            <label htmlFor={id} className="form-label d-flex align-items-center">
+                                {icon}
+                                <span className="ms-2">{label}</span>
+                            </label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                id={id}
+                                name={id}
+                                placeholder={`Digite ${label}`}
+                                value={formData[id]}
+                                onChange={handleInputChange}
+                                required
+                            />
+                        </div>
+                    ))}
 
-                    <p className="privacy-text">
-                        Seus dados estão protegidos de acordo com nossa política de privacidade.
-                    </p>
+                    <div className="col-12 d-flex justify-content-center">
+                        <button type="submit" className="btn btn-primary btn-sm">
+                            <CreditCard size={16} /> Cadastrar
+                        </button>
+                    </div>
                 </form>
+
+                <p className="privacy-text mt-3">
+                    Seus dados estão protegidos de acordo com nossa política de privacidade.
+                </p>
             </div>
         </div>
     );

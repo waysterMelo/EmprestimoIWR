@@ -16,14 +16,13 @@
     pointer-events: none; /* Impede interações com as partículas */
 }
 
-
 .form-container {
     background-color: rgba(255, 255, 255, 0.95);
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     padding: 32px;
     width: 100%;
-    max-width: 720px;
+    max-width: 100%;
     backdrop-filter: blur(10px);
     animation: fadeIn 1s ease-in-out;
 }
@@ -36,7 +35,7 @@
     font-weight: 700;
 }
 
-/* Estilos para o upload de foto */
+/* Upload de foto */
 .foto-upload-container {
     display: flex;
     flex-direction: column;
@@ -125,7 +124,7 @@
     display: none;
 }
 
-/* Estilos do formulário */
+/* Formulário */
 .input-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -189,13 +188,70 @@
     color: #777;
 }
 
+/* Animação de fadeIn */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Responsividade */
+
+/* Telas até 992px */
+@media (max-width: 992px) {
+    .form-container {
+        width: 70%;
+        padding: 28px;
+    }
+    .form-title {
+        font-size: 24px;
+        margin-bottom: 24px;
+    }
+    .input-group input {
+        font-size: 15px;
+        padding: 10px 14px;
+    }
+    .submit-btn {
+        font-size: 15px;
+        padding: 12px;
+    }
+}
+
+/* Telas até 768px */
 @media (max-width: 768px) {
     .form-container {
         padding: 24px;
     }
-
     .input-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* Telas até 576px */
+@media (max-width: 576px) {
+    .form-container {
+        width: 90%;
+        padding: 16px;
+    }
+    .form-title {
+        font-size: 22px;
+        margin-bottom: 20px;
+    }
+    .input-group input {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+    .submit-btn {
+        font-size: 14px;
+        padding: 10px;
+    }
+    .foto-preview-area {
+        width: 120px;
+        height: 120px;
     }
 }
