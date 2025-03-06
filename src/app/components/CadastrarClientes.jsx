@@ -1,10 +1,15 @@
 import React, { useRef, useState } from "react";
-import { DollarSign, User, Phone, Mail, CreditCard, Upload, X, MapPin, Home } from "lucide-react";
-import "../css/CadastrarClientes.css"; // Pode manter se tiver outros estilos
+import {
+    DollarSign, User, Phone, Mail, CreditCard, Upload, X,
+    MapPin, Home, Hash, CheckCircle, AlertCircle, UserPlus, ArrowLeft
+} from "lucide-react";
+import { Modal, Button, Alert } from "react-bootstrap";
 import ClientesServices from "../services/ClientesServices";
-import { Modal, Button } from "react-bootstrap";
+import "../css/CadastrarClientes.css";
+import {useNavigate} from "react-router-dom";
 
 const CadastrarClientes = () => {
+    const navigate = useNavigate();
     const service = useRef(new ClientesServices()).current;
     const [formData, setFormData] = useState({
         nome: "",
@@ -86,110 +91,186 @@ const CadastrarClientes = () => {
         setMensagem("");
     };
 
-    const campos = [
-        { id: "nome", label: "Nome Completo", icon: <User size={18} /> },
-        { id: "email", label: "E-mail", icon: <Mail size={18} /> },
-        { id: "telefone", label: "Telefone", icon: <Phone size={18} /> },
-        { id: "cpf", label: "CPF", icon: <CreditCard size={18} /> },
-        { id: "limitePagamento", label: "Limite de Pagamento", icon: <DollarSign size={18} /> },
-        { id: "endereco", label: "Endereço", icon: <MapPin size={18} /> },
-        { id: "bairro", label: "Bairro", icon: <Home size={18} /> },
-        { id: "cidade", label: "Cidade", icon: <MapPin size={18} /> },
-        { id: "estado", label: "Estado", icon: <MapPin size={18} /> },
-        { id: "numero", label: "Número", icon: <Home size={18} /> }
+    const camposPessoais = [
+        { id: "nome", label: "Nome Completo", icon: <User className="text-primary" size={20} /> },
+        { id: "email", label: "E-mail", icon: <Mail className="text-danger" size={20} /> },
+        { id: "telefone", label: "Telefone", icon: <Phone className="text-success" size={20} /> },
+        { id: "cpf", label: "CPF", icon: <CreditCard className="text-info" size={20} /> },
+        { id: "limitePagamento", label: "Limite de Pagamento", icon: <DollarSign className="text-warning" size={20} /> },
     ];
 
+    const camposEndereco = [
+        { id: "endereco", label: "Endereço", icon: <Home className="text-primary" size={20} /> },
+        { id: "numero", label: "Número", icon: <Hash className="text-secondary" size={20} /> },
+        { id: "bairro", label: "Bairro", icon: <MapPin className="text-danger" size={20} /> },
+        { id: "cidade", label: "Cidade", icon: <MapPin className="text-success" size={20} /> },
+        { id: "estado", label: "Estado", icon: <MapPin className="text-info" size={20} /> },
+    ];
+
+    const voltarTelaInicial = () => {
+        navigate('/'); // Adjust the path to match your app's routing
+    };
+
     return (
-        <div className="background-money d-flex justify-content-center align-items-center">
-            <div className="form-container">
-                <h2 className="form-title">Cadastrar Novo Cliente</h2>
-
-                <form onSubmit={handleSubmit} className="row g-3">
-                    <div className="col-12 text-center mb-3">
-                        <div className="foto-upload-container">
-                            <div className="foto-preview-area">
-                                {previewFoto ? (
-                                    <div className="foto-preview-wrapper">
-                                        <img src={previewFoto} alt="Preview" className="foto-preview" />
-                                        <button
-                                            type="button"
-                                            className="remove-foto-btn"
-                                            onClick={removerFoto}
-                                            aria-label="Remover foto"
-                                        >
-                                            <X size={20} />
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="foto-upload-placeholder">
-                                        <User size={64} className="user-icon" />
-                                        <span>Foto do Cliente</span>
-                                    </div>
-                                )}
-                            </div>
-
-                            <label htmlFor="foto-upload" className="foto-upload-btn">
-                                <Upload size={16} />
-                                <span>Escolher Foto</span>
-                                <input
-                                    type="file"
-                                    id="foto-upload"
-                                    accept="image/*"
-                                    onChange={handleFotoChange}
-                                    className="hidden-input"
-                                />
-                            </label>
-                        </div>
-                    </div>
-
-                    {campos.map(({ id, label, icon }, index) => (
-                        <div key={index} className="col-md-6">
-                            <label htmlFor={id} className="form-label d-flex align-items-center">
-                                {icon}
-                                <span className="ms-2">{label}</span>
-                            </label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                id={id}
-                                name={id}
-                                placeholder={`Digite ${label}`}
-                                value={formData[id]}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-                    ))}
-
-                    <div className="col-12 d-flex justify-content-center">
-                        <button type="submit" className="btn btn-primary btn-sm">
-                            <CreditCard size={16} /> Cadastrar
+        <div className="container-fluid py-5 background">
+            <div className="row justify-content-center">
+                <div className="col-md-8 col-lg-6">
+                    <div className="card shadow-lg border-0 rounded-lg">
+                        {/* Home Button - Positioned at top-left of the form */}
+                        <button
+                            onClick={voltarTelaInicial}
+                            className="btn btn-dark position-absolute top-0 start-0 m-3 d-flex align-items-center"
+                            style={{ zIndex: 10 }}
+                        >
+                            <ArrowLeft size={20} className="me-2 text-info" />
+                            Tela Inicial
                         </button>
+                        <div className="bg-gradient-primary text-white text-center">
+                            <UserPlus size={48} className="mb-3" />
+                            <h2 className="display-6 mb-0 text-dark">Cadastrar Novo Cliente</h2>
+                        </div>
+                        <div className="card-body p-4">
+                            <form onSubmit={handleSubmit}>
+                                {/* Foto Upload Section */}
+                                <div className="text-center mb-4">
+                                    <div className="position-relative d-inline-block">
+                                        {previewFoto ? (
+                                            <div className="position-relative">
+                                                <img
+                                                    src={previewFoto}
+                                                    alt="Preview"
+                                                    className="rounded-circle border border-primary shadow"
+                                                    style={{ width: '180px', height: '180px', objectFit: 'cover' }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-danger btn-sm position-absolute top-0 end-0 rounded-circle"
+                                                    onClick={removerFoto}
+                                                    aria-label="Remover foto"
+                                                >
+                                                    <X size={16} />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="bg-light rounded-circle d-flex flex-column justify-content-center align-items-center"
+                                                 style={{ width: '180px', height: '180px', border: '2px dashed #6c757d' }}>
+                                                <User size={64} className="text-muted" />
+                                                <span className="text-muted">Foto do Cliente</span>
+                                            </div>
+                                        )}
+                                        <label
+                                            htmlFor="foto-upload"
+                                            className="btn btn-outline-primary mt-3 d-block"
+                                        >
+                                            <Upload size={16} className="me-2" />
+                                            Escolher Foto
+                                            <input
+                                                type="file"
+                                                id="foto-upload"
+                                                accept="image/*"
+                                                onChange={handleFotoChange}
+                                                className="d-none"
+                                            />
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* Personal Information Section */}
+                                <div className="mb-4">
+                                    <h5 className="border-bottom pb-2 mb-3 text-primary">
+                                        <User size={24} className="me-2" />
+                                        Informações Pessoais
+                                    </h5>
+                                    <div className="row g-3">
+                                        {camposPessoais.map(({ id, label, icon }, index) => (
+                                            <div key={index} className="col-md-6">
+                                                <div className="input-group">
+                                                    <span className="input-group-text bg-light border-end-0">
+                                                        {icon}
+                                                    </span>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control border-start-0 shadow-sm"
+                                                        id={id}
+                                                        name={id}
+                                                        placeholder={label}
+                                                        value={formData[id]}
+                                                        onChange={handleInputChange}
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Address Information Section */}
+                                <div className="mb-4">
+                                    <h5 className="border-bottom pb-2 mb-3 text-primary">
+                                        <MapPin size={24} className="me-2" />
+                                        Informações de Endereço
+                                    </h5>
+                                    <div className="row g-3">
+                                        {camposEndereco.map(({ id, label, icon }, index) => (
+                                            <div key={index} className="col-md-6">
+                                                <div className="input-group">
+                                                    <span className="input-group-text bg-light border-end-0">
+                                                        {icon}
+                                                    </span>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control border-start-0 shadow-sm"
+                                                        id={id}
+                                                        name={id}
+                                                        placeholder={label}
+                                                        value={formData[id]}
+                                                        onChange={handleInputChange}
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Submit Button */}
+                                <div className="text-center">
+                                    <button
+                                        type="submit"
+                                        className="btn btn-primary btn-lg shadow-sm d-flex align-items-center justify-content-center mx-auto"
+                                    >
+                                        <UserPlus size={20} className="me-2" />
+                                        Cadastrar Cliente
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        <div className="card-footer text-center bg-light py-3">
+                            <small className="text-muted">
+                                Seus dados estão protegidos de acordo com nossa política de privacidade.
+                            </small>
+                        </div>
                     </div>
-                </form>
-
-                <p className="privacy-text mt-3">
-                    Seus dados estão protegidos de acordo com nossa política de privacidade.
-                </p>
-
-                {/* Modal do Bootstrap com suporte a mensagens longas */}
-                <Modal show={modalAberto} onHide={fecharModal} centered size="lg"> {/* Aumentei o tamanho para "lg" */}
-                    <Modal.Header
-                        className={sucesso ? "bg-success text-white" : "bg-danger text-white"}
-                        closeButton
-                    >
-                        <Modal.Title>{sucesso ? "Sucesso" : "Erro"}</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body style={{ maxHeight: "400px", overflowY: "auto" }}> {/* Adicionei scroll se necessário */}
-                        <p>{mensagem}</p>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="secondary" onClick={fecharModal}>
-                            Fechar
-                        </Button>
-                    </Modal.Footer>
-                </Modal>
+                </div>
             </div>
+
+            {/* Modal for Success/Error */}
+            <Modal show={modalAberto} onHide={fecharModal} centered size="lg">
+                <Modal.Header className={sucesso ? "bg-success text-white" : "bg-danger text-white"} closeButton>
+                    <Modal.Title>{sucesso ? "Sucesso" : "Erro"}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Alert variant={sucesso ? "success" : "danger"} className="d-flex align-items-center">
+                        {sucesso ? <CheckCircle size={24} className="me-2" /> : <AlertCircle size={24} className="me-2" />}
+                        <span>{mensagem}</span>
+                    </Alert>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={fecharModal}>
+                        Fechar
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 };

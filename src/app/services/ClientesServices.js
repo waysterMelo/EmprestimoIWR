@@ -60,6 +60,43 @@ class ClientesServices {
     }
 
 
+    async atualizarCliente(id, cliente) {
+        try {
+            const response = await axios.put(`/api/clientes/${id}`, cliente);
+            return response;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || 'Erro ao atualizar cliente.');
+        }
+    }
+
+    async excluirCliente(id) {
+        try {
+            const response = await axios.delete(`/api/clientes/${id}`);
+            return response;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || 'Erro ao excluir cliente.');
+        }
+    }
+
+    async buscarClientePorCpf(cpf){
+        try {
+            const response = axios.get(`/clientes/buscar-por-cpf/${cpf}`)
+            return response
+        }catch (error){
+            throw new Error(error.response?.data?.message || 'Erro ao buscar cliente.');
+        }
+    }
+
+
+    async buscarClientePorNome(nome) {
+        try {
+            const response = await axios.get(`/clientes/buscar-por-nome/${nome}`);
+            return response;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || 'Erro ao buscar cliente pelo nome.');
+        }
+    }
+
 }
 
 export default ClientesServices;
