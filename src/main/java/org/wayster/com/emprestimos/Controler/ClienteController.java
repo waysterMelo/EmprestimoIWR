@@ -2,12 +2,17 @@ package org.wayster.com.emprestimos.Controler;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.wayster.com.emprestimos.Dto.ClienteComEmprestimosDto;
 import org.wayster.com.emprestimos.Dto.ClientesDto;
+import org.wayster.com.emprestimos.Mapper.ClientesMapper;
 import org.wayster.com.emprestimos.Service.ClientesServices;
 
+import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -15,98 +20,99 @@ import java.util.List;
 public class ClienteController {
 
     private final ClientesServices clientesServices;
+    private final ClientesMapper clientesMapper;
 
 
     @Autowired
-    public ClienteController(ClientesServices clientesServices) {
+    public ClienteController(ClientesServices clientesServices, ClientesMapper clientesMapper) {
         this.clientesServices = clientesServices;
+        this.clientesMapper = clientesMapper;
     }
 
-    @PostMapping
-    public ResponseEntity<?> cadastrarCliente(@RequestBody ClientesDto clientesDto) {
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> cadastrarCliente(
+            @RequestPart("nome") String nome,
+            @RequestPart("email") String email,
+            @RequestPart("telefone") String telefone,
+            @RequestPart("cpf") String cpf,
+            @RequestPart("limitePagamento") String limitePagamento,
+            @RequestPart(value = "foto", required = false) MultipartFile foto,
+            @RequestPart("endereco") String endereco,
+            @RequestPart("bairro") String bairro,
+            @RequestPart("cidade") String cidade,
+            @RequestPart("estado") String estado,
+            @RequestPart("numero") String numero
+    ) {
         try {
+            ClientesDto clientesDto = ClientesDto.builder()
+                    .nome(nome)
+                    .email(email)
+                    .telefone(telefone)
+                    .cpf(cpf)
+                    .limitePagamento(new BigDecimal(limitePagamento))
+                    .foto(foto != null ? foto.getBytes() : null)
+                    .endereco(endereco)
+                    .bairro(bairro)
+                    .cidade(cidade)
+                    .estado(estado)
+                    .numero(numero)
+                    .build();
+
             var clienteCadastrado = clientesServices.cadastrarCliente(clientesDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(clienteCadastrado);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IOException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
-    /**
-     * Endpoint para buscar um cliente pelo CPF.
-     *
-     * @param cpf CPF do cliente.
-     * @return ResponseEntity com o DTO do cliente ou status NOT_FOUND.
-     */
+
+
+
     @GetMapping("/buscar-por-cpf/{cpf}")
-    public ResponseEntity<ClientesDto> buscarClientesPorCpf(@PathVariable Long cpf){
+    public ResponseEntity<ClientesDto> buscarClientesPorCpf(@PathVariable String cpf){
         return clientesServices.buscarClientePorCpf(cpf)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
 
-
-    /**
-     * Endpoint para buscar cliente pelo CPF e incluir empréstimos associados.
-     *
-     * @param cpf CPF do cliente.
-     * @return ResponseEntity com os dados do cliente e empréstimos ou status NOT_FOUND.
-     */
     @GetMapping("/buscar-com-emprestimos/{cpf}")
-    public ResponseEntity<ClienteComEmprestimosDto> buscarClienteComEmprestimosPorCpf(@PathVariable Long cpf) {
+    public ResponseEntity<ClienteComEmprestimosDto> buscarClienteComEmprestimosPorCpf(@PathVariable String cpf) {
         return clientesServices.buscarClienteComEmprestimosPorCpf(cpf)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    /**
-     * Endpoint para atualizar os dados de um cliente.
-     *
-     * @param id           ID do cliente a ser atualizado.
-     * @param clienteDto   Dados atualizados do cliente.
-     * @return ResponseEntity com o cliente atualizado ou status NOT_FOUND se o cliente não for encontrado.
-     */
-        @PutMapping("/{id}")
-        public ResponseEntity<ClientesDto> atualizarCliente(@PathVariable Long id, @RequestBody ClientesDto clienteDto){
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ClientesDto> atualizarCliente(@PathVariable Long id, @RequestBody ClientesDto clienteDto){
             return clientesServices.atualizarCliente(id, clienteDto)
                     .map(ResponseEntity::ok)
                     .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
         }
 
 
-    /**
-     * Endpoint para deletar um cliente.
-     * Verifica se o cliente tem empréstimos antes de excluí-lo.
-     *
-     * @param id ID do cliente a ser deletado.
-     * @return ResponseEntity com mensagem de sucesso ou erro.
-     */
+
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deletarCliente(@PathVariable Long id){
         String resultado = clientesServices.deletarCliente(id);
         return ResponseEntity.ok(resultado);
     }
-    /**
-     * Busca clientes pelo nome.
-     * @param nome Palavra-chave parcial ou completa.
-     * @return Lista de clientes correspondentes.
-     */
+
     @GetMapping("/buscar-por-nome")
     public ResponseEntity<List<ClientesDto>> buscarClientesPorNome(@RequestParam String nome) {
         List<ClientesDto> clientes = clientesServices.buscarClientesPorNome(nome);
         return ResponseEntity.ok(clientes);
     }
 
-    /**
-     * Busca todos os clientes cadastrados.
-     * @return Lista de todos os clientes.
-     */
+
     @GetMapping("/todos")
     public ResponseEntity<List<ClientesDto>> buscarTodosClientes() {
         List<ClientesDto> clientes = clientesServices.buscarTodosClientes();
         return ResponseEntity.ok(clientes);
     }
+
 
 
 }

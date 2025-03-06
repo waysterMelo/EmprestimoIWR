@@ -2,6 +2,7 @@ package org.wayster.com.emprestimos.Service;
 
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,6 @@ import org.wayster.com.emprestimos.Mapper.ClientesMapper;
 import org.wayster.com.emprestimos.Mapper.MapperEmprestimo;
 import org.wayster.com.emprestimos.Repository.ClientesRepository;
 import org.wayster.com.emprestimos.Repository.EmprestimoRepository;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -27,36 +27,26 @@ public class ClientesServices {
     private final EmprestimoRepository emprestimoRepository;
 
 
+
+    @Transactional
     public ClientesDto cadastrarCliente(ClientesDto clientesDto) {
-        // Verifica se o CPF já existe
-        boolean cpfExistente = clientesRepository.existsByCpf((clientesDto.getCpf()));
-        if (cpfExistente) {
-            throw new IllegalArgumentException("CPF já cadastrado: " + clientesDto.getCpf());
-        }
+        // Usa o mapper para converter DTO para Entity
+        ClientesEntity clienteEntity = mapperEmprestimo.toEntity(clientesDto);
 
-        ClientesEntity clienteEntity = clientesMapper.toEntity(clientesDto);
+        // Salva no banco de dados
         ClientesEntity clienteSalvo = clientesRepository.save(clienteEntity);
-        return clientesMapper.toDto(clienteSalvo);
+
+        // Usa o mapper para converter Entity de volta para DTO
+        return mapperEmprestimo.toDto(clienteSalvo);
     }
 
-    /**
-     * Busca um cliente pelo CPF.
-     *
-     * @param cpf CPF do cliente.
-     * @return DTO do cliente, se encontrado.
-     */
-    public Optional<ClientesDto> buscarClientePorCpf(Long cpf) {
+    public Optional<ClientesDto> buscarClientePorCpf(String cpf) {
         return clientesRepository.findByCpf(cpf)
-                .map(mapperEmprestimo::toDto); // Converte a entidade para DTO usando o mapper
+                .map(mapperEmprestimo::toDto);
     }
 
-    /**
-     * Busca um cliente pelo CPF e retorna os empréstimos associados, se houver.
-     *
-     * @param cpf CPF do cliente.
-     * @return DTO contendo os dados do cliente e os empréstimos associados.
-     */
-    public Optional<ClienteComEmprestimosDto> buscarClienteComEmprestimosPorCpf(Long cpf) {
+
+    public Optional<ClienteComEmprestimosDto> buscarClienteComEmprestimosPorCpf(String cpf) {
         return clientesRepository.findByCpf(cpf)
                 .map(cliente -> {
                     // Converte o cliente para DTO
@@ -73,13 +63,7 @@ public class ClientesServices {
                 });
     }
 
-    /**
-     * Atualiza os dados de um cliente existente.
-     *
-     * @param id          ID do cliente a ser atualizado.
-     * @param clienteDto  Dados atualizados do cliente.
-     * @return Um Optional contendo o DTO do cliente atualizado, ou vazio se o cliente não for encontrado.
-     */
+
     public Optional<ClientesDto> atualizarCliente(Long id, ClientesDto clienteDto) {
         return clientesRepository.findById(id)
                 .map(clienteExistente -> {
@@ -100,12 +84,7 @@ public class ClientesServices {
                 });
     }
 
-    /**
-     * Deleta um cliente caso ele não possua empréstimos associados.
-     *
-     * @param id ID do cliente a ser deletado.
-     * @return Mensagem indicando sucesso ou erro.
-     */
+
      public String deletarCliente(Long id){
          // Verifica se o cliente existe
          ClientesEntity cliente  = clientesRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Cliente com ID " + id + " não encontrado."));
@@ -121,11 +100,7 @@ public class ClientesServices {
          return "Cliente com ID " + id + " deletado com sucesso.";
      }
 
-    /**
-     * Busca todos os clientes cadastrados no sistema.
-     *
-     * @return Lista de todos os ClientesDto.
-     */
+
     public List<ClientesDto> buscarTodosClientes(){
         return clientesRepository.findAll()
                .stream()
@@ -133,17 +108,15 @@ public class ClientesServices {
                .toList();
     }
 
-    /**
-     * Busca clientes pelo nome com base em palavras-chave.
-     *
-     * @param nome Palavra-chave parcial ou completa.
-     * @return Lista de ClientesDto correspondentes.
-     */
+
     public List<ClientesDto> buscarClientesPorNome(String nome) {
         return clientesRepository.findByNomeContaining(nome)
                 .stream()
                 .map(mapperEmprestimo::toDto)
                 .toList();
     }
+
+    
+
 
 }

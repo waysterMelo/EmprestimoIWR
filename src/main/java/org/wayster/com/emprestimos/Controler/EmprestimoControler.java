@@ -18,13 +18,7 @@ public class EmprestimoControler {
     private final EmprestimoService emprestimoService;
 
 
-    /**
-     * Endpoint para salvar um novo empréstimo.
-     * Este método recebe um objeto DTO contendo os dados do empréstimo e o processa usando o serviço.
-     *
-     * @param emprestimoDto Dados do empréstimo a serem salvos.
-     * @return ResponseEntity com o DTO do empréstimo salvo e o status HTTP.
-     */
+
     @PostMapping
     public ResponseEntity<EmprestimoDto> salvarEmprestimo(@RequestBody @Valid EmprestimoDto emprestimoDto) {
         return emprestimoService.cadastrarEmprestimo(emprestimoDto)
@@ -33,25 +27,14 @@ public class EmprestimoControler {
     }
 
 
-    /**
-     * Busca um cliente pelo CPF e seus empréstimos.
-     *
-     * @param cpf CPF do cliente.
-     * @return Dados do cliente e seus empréstimos.
-     */
     @GetMapping("/{cpf}")
-    public ResponseEntity<ClientesDto> buscarClientePorCpf(@PathVariable Long cpf) {
+    public ResponseEntity<ClientesDto> buscarClientePorCpf(@PathVariable String cpf) {
         return emprestimoService.buscarClientePorCpfComEmprestimos(cpf)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    /**
-     * Realiza a baixa do pagamento de um empréstimo.
-     *
-     * @param emprestimoId ID do empréstimo.
-     * @return Dados do empréstimo atualizado.
-     */
+
     @PostMapping("/{emprestimoId}/baixar")
     public ResponseEntity<EmprestimoDto> baixarPagamento(@PathVariable Long emprestimoId) {
         return emprestimoService.realizarBaixaPagamento(emprestimoId)

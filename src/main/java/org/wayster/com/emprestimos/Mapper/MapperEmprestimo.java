@@ -11,13 +11,46 @@ import java.util.Optional;
 @Component
 public class MapperEmprestimo {
 
-    /**
-     * Converte um `EmprestimoDto` em uma entidade `EmprestimoEntity`.
-     *
-     * @param emprestimoDto O DTO do empréstimo.
-     * @param clienteEntity O cliente relacionado ao empréstimo.
-     * @return A entidade `EmprestimoEntity`.
-     */
+    public ClientesEntity toEntity(ClientesDto clientesDto) {
+        return Optional.ofNullable(clientesDto)
+                .map(dto -> ClientesEntity.builder()
+                        .id(dto.getId())
+                        .nome(dto.getNome())
+                        .email(dto.getEmail())
+                        .telefone(dto.getTelefone())
+                        .cpf(dto.getCpf())
+                        .endereco(dto.getEndereco())
+                        .bairro(dto.getBairro())
+                        .cidade(dto.getCidade())
+                        .estado(dto.getEstado())
+                        .numero(dto.getNumero())
+                        .limitePagamento(dto.getLimitePagamento())
+                        .foto(dto.getFoto())
+                        .build())
+                .orElse(null);
+    }
+
+    public ClientesDto toDto(ClientesEntity clientesEntity) {
+        return Optional.ofNullable(clientesEntity)
+                .map(entity -> ClientesDto.builder()
+                        .id(entity.getId())
+                        .nome(entity.getNome())
+                        .email(entity.getEmail())
+                        .telefone(entity.getTelefone())
+                        .cpf(entity.getCpf())
+                        .endereco(entity.getEndereco())
+                        .bairro(entity.getBairro())
+                        .cidade(entity.getCidade())
+                        .estado(entity.getEstado())
+                        .numero(entity.getNumero())
+                        .limitePagamento(entity.getLimitePagamento())
+                        .foto(entity.getFoto())
+                        .dataCadastro(entity.getDataCadastro())
+                        .build())
+                .orElse(null);
+    }
+
+
     public EmprestimoEntity toEntity(EmprestimoDto emprestimoDto, ClientesEntity clienteEntity) {
         return Optional.ofNullable(emprestimoDto)
                 .map(dto -> EmprestimoEntity.builder()
@@ -34,12 +67,6 @@ public class MapperEmprestimo {
                 ).orElse(null);
     }
 
-    /**
-     * Converte uma entidade `EmprestimoEntity` em um `EmprestimoDto`.
-     *
-     * @param emprestimoEntity A entidade de empréstimo.
-     * @return O DTO correspondente.
-     */
     public EmprestimoDto toDto(EmprestimoEntity emprestimoEntity) {
         return Optional.ofNullable(emprestimoEntity)
                 .map(entity -> EmprestimoDto.builder()
@@ -56,47 +83,5 @@ public class MapperEmprestimo {
                         .observacao(entity.getObservacao())
                         .build()
                 ).orElse(null);
-    }
-
-    /**
-     * Converte um `ClientesDto` em uma entidade `ClientesEntity`.
-     *
-     * @param clientesDto O DTO do cliente.
-     * @return A entidade `ClientesEntity`.
-     */
-    public ClientesEntity toEntity(ClientesDto clientesDto) {
-        return Optional.ofNullable(clientesDto)
-                .map(dto -> new ClientesEntity(
-                        null, // O ID será gerado automaticamente
-                        dto.getNome(),
-                        dto.getTelefone(),
-                        dto.getCpf(),
-                        dto.getEndereco(),
-                        dto.getBairro(),
-                        dto.getCidade(),
-                        dto.getEstado(),
-                        dto.getNumero()
-                )).orElse(null);
-    }
-
-    /**
-     * Converte uma entidade `ClientesEntity` em um `ClientesDto`.
-     *
-     * @param clientesEntity A entidade do cliente.
-     * @return O DTO correspondente.
-     */
-    public ClientesDto toDto(ClientesEntity clientesEntity) {
-        return Optional.ofNullable(clientesEntity)
-                .map(entity -> new ClientesDto(
-                        entity.getNome(),
-                        entity.getTelefone(),
-                        entity.getCpf(),
-                        entity.getEndereco(),
-                        entity.getBairro(),
-                        entity.getCidade(),
-                        entity.getEstado(),
-                        entity.getNumero(),
-                        null
-                )).orElse(null);
     }
 }

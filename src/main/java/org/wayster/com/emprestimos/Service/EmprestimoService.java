@@ -13,7 +13,6 @@ import org.wayster.com.emprestimos.Repository.ClientesRepository;
 import org.wayster.com.emprestimos.Repository.EmprestimoRepository;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,9 +26,7 @@ public class EmprestimoService {
     private final MapperEmprestimo mapperEmprestimo;
     private final WhatsAppService whatsAppService;
 
-    /**
-     * Cadastra um novo empréstimo para o cliente e envia notificação via WhatsApp.
-     */
+
     public Optional<EmprestimoDto> cadastrarEmprestimo(EmprestimoDto emprestimoDto) {
         return clientesRepository.findById(emprestimoDto.getClienteId())
                 .map(cliente -> {
@@ -58,6 +55,7 @@ public class EmprestimoService {
                             emprestimoSalvo.getDataVencimento().toString()               // data_vencimento
                     );
 
+
                     // Retorna DTO
                     return emprestimosMapper.toDto(emprestimoSalvo);
                 })
@@ -66,10 +64,8 @@ public class EmprestimoService {
                 });
     }
 
-    /**
-     * Busca um cliente pelo CPF e retorna seus dados + lista de empréstimos.
-     */
-    public Optional<ClientesDto> buscarClientePorCpfComEmprestimos(Long cpf){
+
+    public Optional<ClientesDto> buscarClientePorCpfComEmprestimos(String cpf){
         return clientesRepository.findByCpf(cpf)
                 .map(cliente -> {
                     ClientesDto clientedto = emprestimosMapper.toDto(cliente);
@@ -82,9 +78,7 @@ public class EmprestimoService {
                 });
     }
 
-    /**
-     * Realiza a baixa total do pagamento, alterando o status para PAGO.
-     */
+
     public Optional<EmprestimoDto> realizarBaixaPagamento(Long emprestimoId){
         return emprestimoRepository.findById(emprestimoId)
                 .map(emprestimo -> {
@@ -94,9 +88,7 @@ public class EmprestimoService {
                 });
     }
 
-    /**
-     * Obtém os empréstimos que vencem na data atual e retorna um resumo.
-     */
+
     public ResumoEmprestimosVencidos buscarEmprestimosVencidosHoje(){
         LocalDate hoje = LocalDate.now();
         List<EmprestimoEntity> emprestimosVencidos = emprestimoRepository.findByDataVencimento(hoje);
@@ -123,9 +115,7 @@ public class EmprestimoService {
         return new ResumoEmprestimosVencidos(emprestimosDto, valoresEmprestados, valoresAReceber, lucro);
     }
 
-    /**
-     * Efetua pagamento parcial, atualizando valor devido e status se quitado.
-     */
+
     public Optional<EmprestimoDto> pagarParcialmente(Long emprestimoId, Double valorPago){
         return emprestimoRepository.findById(emprestimoId)
                 .map(emprestimo -> {
@@ -159,4 +149,5 @@ public class EmprestimoService {
                     return mapperEmprestimo.toDto(emprestimo);
                 });
     }
+
 }
