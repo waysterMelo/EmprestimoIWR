@@ -13,6 +13,7 @@ import org.wayster.com.emprestimos.Repository.ClientesRepository;
 import org.wayster.com.emprestimos.Repository.EmprestimoRepository;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,12 +40,19 @@ public class EmprestimoService {
                     // Preenche campos do DTO
                     emprestimoDto.setValorComJuros(valorComJuros);
                     emprestimoDto.setDataEmprestimo(LocalDate.now());
-                    emprestimoDto.setDataVencimento(emprestimoDto.getDataEmprestimo().plusDays(30));
+
+                    // Se não veio data de vencimento do front, use 30 dias à frente como fallback:
+                    if (emprestimoDto.getDataVencimento() == null) {
+                        emprestimoDto.setDataVencimento(emprestimoDto.getDataEmprestimo().plusDays(30));
+                    }
+
                     emprestimoDto.setStatusPagamento(StatusPagamento.PENDENTE);
 
                     // Converte DTO para Entity e salva no banco
                     EmprestimoEntity emprestimoEntity = emprestimosMapper.toEntity(emprestimoDto, cliente);
                     EmprestimoEntity emprestimoSalvo = emprestimoRepository.save(emprestimoEntity);
+
+                    DateTimeFormatter formatterBR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
                     // Envia via template do WhatsApp (sem valor pago)
                     whatsAppService.enviarTemplateEmprestimo(
@@ -52,7 +60,7 @@ public class EmprestimoService {
                             String.format("%.2f", emprestimoSalvo.getValorEmprestimo()),  // valor_creditado
                             String.format("%.2f", emprestimoSalvo.getValorEmprestimo()), // valor pego
                             String.format("%.2f", emprestimoSalvo.getValorComJuros()),    // valor_com_juros
-                            emprestimoSalvo.getDataVencimento().toString()               // data_vencimento
+                            emprestimoSalvo.getDataVencimento().format(formatterBR)               // data_vencimento
                     );
 
 
