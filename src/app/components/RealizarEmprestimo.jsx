@@ -10,29 +10,29 @@ const RealizarEmprestimo = () => {
     const emprestimoService = new EmprestimoServices();
     const clientesService = new ClientesServices();
 
-    const [buscaNome, setBuscaNome] = useState("");
     const [buscaCpf, setBuscaCpf] = useState("");
     const [cliente, setCliente] = useState(null);
     const [valor, setValor] = useState("");
     const [juros, setJuros] = useState("");
     const [valorFinal, setValorFinal] = useState(0);
 
-    const buscarClientePorNome = async () => {
-        try {
-            const resultado = await clientesService.buscarClientePorNome(buscaNome);
-            setCliente(resultado.data);
-        } catch (error) {
-            alert("Cliente não encontrado pelo nome.");
-            setCliente(null);
-        }
-    };
+    // Novo campo data de vencimento
+    const [dataVencimento, setDataVencimento] = useState("");
+
+    // Estados para modais de erro/sucesso
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showErrorModal, setShowErrorModal] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
 
     const buscarClientePorCpf = async () => {
         try {
             const resultado = await clientesService.buscarClientePorCpf(buscaCpf);
             setCliente(resultado.data);
         } catch (error) {
-            alert("Cliente não encontrado pelo CPF.");
+            // Em vez de alert, chamamos modal de erro
+            setErrorMessage("Cliente não encontrado pelo CPF.");
+            setShowErrorModal(true);
             setCliente(null);
         }
     };
@@ -52,27 +52,35 @@ const RealizarEmprestimo = () => {
     }, [valor, juros]);
 
     const handleSalvar = async () => {
-        if (!cliente || valorFinal <= 0) {
-            alert("Complete corretamente todas as informações antes de salvar.");
+        if (!cliente || valorFinal <= 0 || !dataVencimento) {
+            setErrorMessage("Complete corretamente todas as informações antes de salvar.");
+            setShowErrorModal(true);
             return;
         }
 
+        const payload = {
+            clienteId: cliente.id,
+            valorEmprestimo: parseFloat(valor),
+            taxaJuros: parseFloat(juros) / 100,
+            valorComJuros: valorFinal,
+            dataVencimento
+        };
+
         try {
-            await emprestimoService.realizarEmprestimo({
-                clienteId: cliente.id,
-                valorInicial: valor,
-                juros,
-                valorFinal,
-            });
-            alert("Empréstimo realizado com sucesso!");
+            await emprestimoService.realizarEmprestimo(payload);
+            setSuccessMessage("Empréstimo realizado com sucesso!");
+            setShowSuccessModal(true);
+
+            // Reset de campos
             setCliente(null);
-            setBuscaNome("");
             setBuscaCpf("");
             setValor("");
             setJuros("");
             setValorFinal(0);
+            setDataVencimento("");
         } catch (error) {
-            alert("Erro ao realizar empréstimo: " + error.message);
+            setErrorMessage("Erro ao realizar empréstimo: " + error.message);
+            setShowErrorModal(true);
         }
     };
 
@@ -96,21 +104,8 @@ const RealizarEmprestimo = () => {
                         </div>
 
                         <div className="card-body p-4">
-                            <div className="row mb-3">
-                                <div className="col-md-6">
-                                    <div className="input-group">
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="Buscar Cliente por Nome"
-                                            value={buscaNome}
-                                            onChange={(e) => setBuscaNome(e.target.value)}
-                                        />
-                                        <button className="btn btn-primary" onClick={buscarClientePorNome}>
-                                            <Search size={20} />
-                                        </button>
-                                    </div>
-                                </div>
+                            {/* Campos de busca */}
+                            <div className="row mb-3 justify-content-center">
                                 <div className="col-md-6">
                                     <div className="input-group">
                                         <input
@@ -120,24 +115,83 @@ const RealizarEmprestimo = () => {
                                             value={buscaCpf}
                                             onChange={(e) => setBuscaCpf(e.target.value)}
                                         />
-                                        <button className="btn btn-secondary" onClick={buscarClientePorCpf}>
+                                        <button className="btn btn-primary" onClick={buscarClientePorCpf}>
                                             <Search size={20} />
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
+                            {/* Campos do cliente pesquisado */}
                             {cliente && (
-                                <div className="alert alert-info mb-3">
-                                    <div className="row">
-                                        <div className="col-md-3"><strong>ID:</strong> {cliente.id}</div>
-                                        <div className="col-md-3"><strong>Nome:</strong> {cliente.nome}</div>
-                                        <div className="col-md-3"><strong>CPF:</strong> {cliente.cpf}</div>
-                                        <div className="col-md-3"><strong>Telefone:</strong> {cliente.telefone}</div>
+                                <div className="row mb-3">
+                                    <div className="col-md-3">
+                                        <label htmlFor="nomeCliente" className="form-label">
+                                            Nome do Cliente
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="nomeCliente"
+                                            className="form-control"
+                                            value={cliente.nome}
+                                            readOnly
+                                        />
+                                    </div>
+
+                                    <div className="col-md-3">
+                                        <label htmlFor="idCliente" className="form-label">
+                                            ID do Cliente
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="idCliente"
+                                            className="form-control"
+                                            value={cliente.id}
+                                            disabled
+                                        />
+                                    </div>
+
+                                    <div className="col-md-3">
+                                        <label htmlFor="cpfCliente" className="form-label">
+                                            CPF do Cliente
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="cpfCliente"
+                                            className="form-control"
+                                            value={cliente.cpf}
+                                            readOnly
+                                        />
+                                    </div>
+
+                                    <div className="col-md-3">
+                                        <label htmlFor="telefoneCliente" className="form-label">
+                                            Telefone do Cliente
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="telefoneCliente"
+                                            className="form-control"
+                                            value={cliente.telefone}
+                                            readOnly
+                                        />
                                     </div>
                                 </div>
                             )}
 
+                            {/* Campo Data de Vencimento */}
+                            <label htmlFor="dataVencimento" className="form-label mt-2">
+                                Data de Vencimento
+                            </label>
+                            <input
+                                type="date"
+                                id="dataVencimento"
+                                className="form-control mb-3"
+                                value={dataVencimento}
+                                onChange={(e) => setDataVencimento(e.target.value)}
+                            />
+
+                            {/* Campos de valor e juros */}
                             <input
                                 type="number"
                                 className="form-control mb-2"
@@ -171,6 +225,68 @@ const RealizarEmprestimo = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Modal de Sucesso */}
+            {showSuccessModal && (
+                <div className="modal fade show" tabIndex="-1" style={{ display: "block" }}>
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Sucesso</h5>
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    onClick={() => setShowSuccessModal(false)}
+                                    aria-label="Close"
+                                ></button>
+                            </div>
+                            <div className="modal-body">
+                                <p>{successMessage}</p>
+                            </div>
+                            <div className="modal-footer">
+                                <button
+                                    type="button"
+                                    className="btn btn-primary"
+                                    onClick={() => setShowSuccessModal(false)}
+                                >
+                                    OK
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Erro */}
+            {showErrorModal && (
+                <div className="modal fade show" tabIndex="-1" style={{ display: "block" }}>
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Atenção</h5>
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    onClick={() => setShowErrorModal(false)}
+                                    aria-label="Close"
+                                ></button>
+                            </div>
+                            <div className="modal-body">
+                                <p>{errorMessage}</p>
+                            </div>
+                            <div className="modal-footer">
+                                <button
+                                    type="button"
+                                    className="btn btn-danger"
+                                    onClick={() => setShowErrorModal(false)}
+                                >
+                                    Fechar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
