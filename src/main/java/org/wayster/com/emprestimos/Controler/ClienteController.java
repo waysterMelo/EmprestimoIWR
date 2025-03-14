@@ -114,5 +114,15 @@ public class ClienteController {
     }
 
 
+    @GetMapping(value = "/foto/{cpf}", produces = MediaType.IMAGE_JPEG_VALUE)
+    public ResponseEntity<byte[]> buscarFotoCliente(@PathVariable String cpf) {
+        return clientesServices.buscarClientePorCpf(cpf)
+                .filter(cliente -> cliente.getFoto() != null)
+                .map(cliente -> ResponseEntity.ok().body(cliente.getFoto()))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+
+
 
 }

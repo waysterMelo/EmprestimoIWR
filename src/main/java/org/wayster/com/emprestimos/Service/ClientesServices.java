@@ -1,10 +1,8 @@
 package org.wayster.com.emprestimos.Service;
 
-import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.wayster.com.emprestimos.Dto.ClienteComEmprestimosDto;
 import org.wayster.com.emprestimos.Dto.ClientesDto;
