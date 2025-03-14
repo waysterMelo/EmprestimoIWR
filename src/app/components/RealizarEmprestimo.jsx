@@ -63,7 +63,8 @@ const RealizarEmprestimo = () => {
             valorEmprestimo: parseFloat(valor),
             taxaJuros: parseFloat(juros) / 100,
             valorComJuros: valorFinal,
-            dataVencimento
+            dataVencimento,
+
         };
 
         try {
