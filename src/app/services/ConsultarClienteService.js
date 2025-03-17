@@ -1,8 +1,7 @@
 // services/ConsultarClienteService.js
 import axios from "axios";
 
-// Defina a URL base do back-end (ajuste conforme sua configuração)
-const BASE_URL = "http://localhost:8080/clientes";
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 const ConsultarClienteService = {
     buscarClientePorCpf: async (cpf) => {
@@ -11,7 +10,7 @@ const ConsultarClienteService = {
 
 
     buscarClienteComEmprestimosPorCpf: async (cpf) => {
-        return axios.get(`${BASE_URL}/buscar-com-emprestimos/${cpf}`);
+        return axios.get(`${BASE_URL}/clientes/buscar-com-emprestimos/${cpf}`);
     },
 
     atualizarCliente: async (id, clienteDto) => {
@@ -20,16 +19,20 @@ const ConsultarClienteService = {
 
 
     buscarFotoClinte: async (cpf) => {
-        return axios.get(`${BASE_URL}/foto/${cpf}`, {responseType: "blob"});
+        return axios.get(`${BASE_URL}/clientes/foto/${cpf}`, {responseType: "blob"});
     },
 
 
     quitarEmprestimo: async (emprestimoId) => {
-        return axios.put(`${BASE_URL}/emprestimos/baixa/${emprestimoId}`);
+        return axios.put(`${BASE_URL}/emprestimo/baixa/${emprestimoId}`);
     },
 
+
     pagarParcialmente: async (emprestimoId, valorPago) => {
-        return axios.put(`${BASE_URL}/emprestimos/pagar-parcial`, { emprestimoId, valorPago });
+        const url = `${BASE_URL}/emprestimo/${emprestimoId}/pagar-parcialmente`;
+        return axios.put(url, {}, {
+            params: { valorPago }
+        });
     }
 
 
