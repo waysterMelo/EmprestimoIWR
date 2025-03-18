@@ -10,6 +10,7 @@ import {
     faExclamationTriangle,
 } from "@fortawesome/free-solid-svg-icons";
 import "../css/ConsultarCliente.css";
+import BootstrapAlertModal from "./BootstrapAlertModal";
 
 const ConsultarCliente = () => {
     const [cpf, setCpf] = useState("");
@@ -26,33 +27,26 @@ const ConsultarCliente = () => {
     const [mostrarCampoParcial, setMostrarCampoParcial] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
+    const [modalMessage, setModalMessage] = useState("");
 
-    // Calcula quantas páginas no total (arredonda pra cima)
+    // Paginação
     const totalPages = Math.ceil(emprestimos.length / itemsPerPage);
-
-    // Índices de início e fim no array
-    const indexOfLastItem = currentPage * itemsPerPage; // ex: se currentPage=2 e itemsPerPage=5 => 2*5=10
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage; // ex: 10 - 5 = 5
-
-    // Recorta só os empréstimos daquela "página"
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentEmprestimos = emprestimos.slice(indexOfFirstItem, indexOfLastItem);
 
-    // Função auxiliar: faz a busca do cliente por CPF (sem preventDefault)
+    const closeModalAlert = () => setModalMessage("");
+
+    // Busca o cliente pelo CPF
     const fetchClientePorCpf = async (cpfNumerico) => {
         setIsLoading(true);
         setErro("");
-
         try {
-            const response = await ConsultarClienteService.buscarClienteComEmprestimosPorCpf(
-                cpfNumerico
-            );
+            const response = await ConsultarClienteService.buscarClienteComEmprestimosPorCpf(cpfNumerico);
             if (response.data) {
                 setCliente(response.data.cliente);
                 setEmprestimos(response.data.emprestimos);
-
-                const fotoResponse = await ConsultarClienteService.buscarFotoClinte(
-                    cpfNumerico
-                );
+                const fotoResponse = await ConsultarClienteService.buscarFotoClinte(cpfNumerico);
                 const imgUrl = URL.createObjectURL(fotoResponse.data);
                 setFoto(imgUrl);
             }
@@ -67,17 +61,13 @@ const ConsultarCliente = () => {
         }
     };
 
-    // Maneira antiga, vinculada ao form (chamado no onSubmit)
     const handleBuscarCliente = async (e) => {
         e.preventDefault();
-
         const cpfNumerico = cpf.replace(/\D/g, "");
         if (cpfNumerico.length !== 11) {
             setErro("Por favor, digite um CPF válido com 11 dígitos.");
             return;
         }
-
-        // Chama a função auxiliar
         await fetchClientePorCpf(cpfNumerico);
     };
 
@@ -112,7 +102,7 @@ const ConsultarCliente = () => {
         if (cliente && cliente.id) {
             navigate(`/atualizar-cliente/${cliente.id}`);
         } else {
-            alert("Cliente não encontrado para atualizar.");
+            setModalMessage("Cliente não encontrado para atualizar.");
         }
     };
 
@@ -131,21 +121,13 @@ const ConsultarCliente = () => {
     const handleQuitarEmprestimo = async () => {
         if (!emprestimoSelecionado) return;
         setIsProcessing(true);
-
         try {
             await ConsultarClienteService.quitarEmprestimo(emprestimoSelecionado.id);
-            alert("Empréstimo quitado com sucesso!");
-
-            // Recarrega o cliente no front, mantendo o CPF atual
+            setModalMessage("Empréstimo quitado com sucesso!");
             await fetchClientePorCpf(cpf.replace(/\D/g, ""));
-
-            // Fecha o modal
             setEmprestimoSelecionado(null);
         } catch (error) {
             console.error("ERRO ao quitar emprestimo:", error);
-            console.error("Status code:", error.response?.status);
-            console.error("Resposta do servidor:", error.response?.data);
-
             setErroPagamento("Erro ao quitar o empréstimo.");
         } finally {
             setIsProcessing(false);
@@ -154,51 +136,36 @@ const ConsultarCliente = () => {
 
     const handlePagamentoParcial = async () => {
         if (!emprestimoSelecionado) return;
-
         if (!mostrarCampoParcial) {
             setMostrarCampoParcial(true);
             return;
         }
-
         if (!valorParcial || parseFloat(valorParcial) <= 0) {
             setErroPagamento("Digite um valor válido.");
             return;
         }
-
         const valorParcialFloat = parseFloat(valorParcial);
         const valorTotal =
-            emprestimoSelecionado.valorComJuros ||
-            emprestimoSelecionado.valorEmprestimo;
-
+            emprestimoSelecionado.valorComJuros || emprestimoSelecionado.valorEmprestimo;
         if (valorParcialFloat >= valorTotal) {
             setErroPagamento(
                 "Esse é valor total devido, volte e escolha a opção de quitar o pagamento."
             );
             return;
         }
-
         setIsProcessing(true);
-
         try {
             await ConsultarClienteService.pagarParcialmente(
                 emprestimoSelecionado.id,
                 valorParcialFloat
             );
-            alert(
-                `Pagamento parcial de ${formatarValor(
-                    valorParcialFloat
-                )} realizado com sucesso!`
+            setModalMessage(
+                `Pagamento parcial de ${formatarValor(valorParcialFloat)} realizado com sucesso!`
             );
-
-            // Recarrega o cliente no front
             await fetchClientePorCpf(cpf.replace(/\D/g, ""));
-
             setEmprestimoSelecionado(null);
         } catch (error) {
             console.error("ERRO no pagamento parcial:", error);
-            console.error("Status code:", error.response?.status);
-            console.error("Resposta do servidor:", error.response?.data);
-
             setErroPagamento("Erro ao processar pagamento parcial.");
         } finally {
             setIsProcessing(false);
@@ -207,6 +174,7 @@ const ConsultarCliente = () => {
 
     return (
         <div className="background-consultar">
+            <BootstrapAlertModal message={modalMessage} onClose={closeModalAlert} />
             <div className="container consultar-container">
                 <div className="card-consultar">
                     <div className="header-consultar">
@@ -215,7 +183,6 @@ const ConsultarCliente = () => {
                             Consultar Cliente
                         </h1>
                     </div>
-
                     <div className="container p-4">
                         {/* Formulário de busca */}
                         <form onSubmit={handleBuscarCliente} className="search-form">
@@ -241,16 +208,12 @@ const ConsultarCliente = () => {
                                 </div>
                             </div>
                         </form>
-
-                        {/* Exibindo mensagem de erro */}
                         {erro && (
                             <div className="alert alert-danger mt-3">
                                 <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
                                 {erro}
                             </div>
                         )}
-
-                        {/* Indicador de carregamento */}
                         {isLoading && (
                             <div className="text-center mt-4">
                                 <div className="spinner-border text-primary" role="status">
@@ -259,11 +222,8 @@ const ConsultarCliente = () => {
                                 <p className="mt-2">Buscando informações do cliente...</p>
                             </div>
                         )}
-
-                        {/* Se encontrou o cliente e não está carregando, exibe tudo junto */}
                         {cliente && !isLoading && (
                             <>
-                                {/* Exibindo dados do cliente */}
                                 <div className="cliente-info mt-4">
                                     <div className="card shadow-sm border-0 rounded-lg">
                                         <div className="card-header bg-primary text-white py-3">
@@ -271,7 +231,6 @@ const ConsultarCliente = () => {
                                         </div>
                                         <div className="card-body p-4">
                                             <div className="row">
-                                                {/* FOTO DO CLIENTE */}
                                                 <div className="col-12 text-center mb-4">
                                                     {foto ? (
                                                         <img
@@ -290,105 +249,75 @@ const ConsultarCliente = () => {
                                                         </div>
                                                     )}
                                                 </div>
-
-                                                {/* PRIMEIRA COLUNA */}
                                                 <div className="col-md-6">
                                                     <div className="info-group p-3 bg-light rounded mb-3">
-                                                        {/* Nome */}
                                                         <div className="d-flex align-items-center mb-2">
                                                             <i className="bi bi-person-fill fs-4 me-3 text-primary"></i>
                                                             <div>
-                                                                <small className="text-muted d-block">
-                                                                    Nome
-                                                                </small>
+                                                                <small className="text-muted d-block">Nome</small>
                                                                 <span className="fw-bold">{cliente.nome}</span>
                                                             </div>
                                                         </div>
-                                                        {/* CPF */}
                                                         <div className="d-flex align-items-center mb-2">
                                                             <i className="bi bi-credit-card-2-front fs-4 me-3 text-primary"></i>
                                                             <div>
-                                                                <small className="text-muted d-block">
-                                                                    CPF
-                                                                </small>
+                                                                <small className="text-muted d-block">CPF</small>
                                                                 <span className="fw-bold">
                                   {formatCpf(cliente.cpf)}
                                 </span>
                                                             </div>
                                                         </div>
-                                                        {/* Email */}
                                                         <div className="d-flex align-items-center mb-2">
                                                             <i className="bi bi-envelope-fill fs-4 me-3 text-primary"></i>
                                                             <div>
-                                                                <small className="text-muted d-block">
-                                                                    E-mail
-                                                                </small>
+                                                                <small className="text-muted d-block">E-mail</small>
                                                                 <span className="fw-bold">{cliente.email}</span>
                                                             </div>
                                                         </div>
-                                                        {/* Telefone */}
                                                         <div className="d-flex align-items-center">
                                                             <i className="bi bi-telephone-fill fs-4 me-3 text-primary"></i>
                                                             <div>
-                                                                <small className="text-muted d-block">
-                                                                    Telefone
-                                                                </small>
+                                                                <small className="text-muted d-block">Telefone</small>
                                                                 <span className="fw-bold">{cliente.telefone}</span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-
-                                                {/* SEGUNDA COLUNA */}
                                                 <div className="col-md-6">
                                                     <div className="info-group p-3 bg-light rounded">
-                                                        {/* Endereço */}
                                                         <div className="d-flex align-items-center mb-2">
                                                             <i className="bi bi-geo-alt-fill fs-4 me-3 text-primary"></i>
                                                             <div>
-                                                                <small className="text-muted d-block">
-                                                                    Endereço
-                                                                </small>
+                                                                <small className="text-muted d-block">Endereço</small>
                                                                 <span className="fw-bold">
                                   {cliente.endereco}, {cliente.numero}
                                 </span>
                                                             </div>
                                                         </div>
-                                                        {/* Bairro */}
                                                         <div className="d-flex align-items-center mb-2">
                                                             <i className="bi bi-building fs-4 me-3 text-primary"></i>
                                                             <div>
-                                                                <small className="text-muted d-block">
-                                                                    Bairro
-                                                                </small>
+                                                                <small className="text-muted d-block">Bairro</small>
                                                                 <span className="fw-bold">{cliente.bairro}</span>
                                                             </div>
                                                         </div>
-                                                        {/* Cidade */}
                                                         <div className="d-flex align-items-center mb-2">
                                                             <i className="bi bi-flag fs-4 me-3 text-primary"></i>
                                                             <div>
-                                                                <small className="text-muted d-block">
-                                                                    Cidade
-                                                                </small>
+                                                                <small className="text-muted d-block">Cidade</small>
                                                                 <span className="fw-bold">{cliente.cidade}</span>
                                                             </div>
                                                         </div>
-                                                        {/* Estado */}
                                                         <div className="d-flex align-items-center">
                                                             <i className="bi bi-globe fs-4 me-3 text-primary"></i>
                                                             <div>
-                                                                <small className="text-muted d-block">
-                                                                    Estado
-                                                                </small>
+                                                                <small className="text-muted d-block">Estado</small>
                                                                 <span className="fw-bold">{cliente.estado}</span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            {/* BOTÃO ATUALIZAR */}
                                             <div className="d-flex justify-content-end mt-4">
                                                 <button
                                                     className="btn btn-primary"
@@ -401,8 +330,6 @@ const ConsultarCliente = () => {
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* LISTA DE EMPRÉSTIMOS */}
                                 <h2 className="mb-4 mt-5">Empréstimos do Cliente</h2>
                                 {emprestimos.length > 0 ? (
                                     <div className="table-responsive">
@@ -428,9 +355,7 @@ const ConsultarCliente = () => {
                                                     <td>{emprestimo.id}</td>
                                                     <td>{formatarValor(emprestimo.valorEmprestimo)}</td>
                                                     <td>
-                                                        {formatarValor(
-                                                            emprestimo.valorDevidoApenasMostrar
-                                                        )}
+                                                        {formatarValor(emprestimo.valorDevidoApenasMostrar)}
                                                     </td>
                                                     <td>{formatarData(emprestimo.dataEmprestimo)}</td>
                                                     <td>{formatarData(emprestimo.dataVencimento)}</td>
@@ -460,7 +385,6 @@ const ConsultarCliente = () => {
                                             </tbody>
                                         </table>
                                         <div className="pagination-container">
-                                            {/* Botão "Anterior" */}
                                             <button
                                                 onClick={() =>
                                                     setCurrentPage((prev) => Math.max(prev - 1, 1))
@@ -470,8 +394,6 @@ const ConsultarCliente = () => {
                                             >
                                                 Anterior
                                             </button>
-
-                                            {/* Lista de páginas */}
                                             {Array.from({ length: totalPages }, (_, index) => index + 1).map(
                                                 (pageNumber) => (
                                                     <button
@@ -487,13 +409,9 @@ const ConsultarCliente = () => {
                                                     </button>
                                                 )
                                             )}
-
-                                            {/* Botão "Próximo" */}
                                             <button
                                                 onClick={() =>
-                                                    setCurrentPage((prev) =>
-                                                        Math.min(prev + 1, totalPages)
-                                                    )
+                                                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                                                 }
                                                 disabled={currentPage === totalPages}
                                                 className="btn btn-secondary"
@@ -509,13 +427,10 @@ const ConsultarCliente = () => {
                                 )}
                             </>
                         )}
-
-                        {/* MODAL PARA PAGAMENTO */}
                         {emprestimoSelecionado && (
                             <div className="modal fade show d-block modal-pagamento-overlay">
                                 <div className="modal-dialog modal-pagamento-dialog">
                                     <div className="modal-content modal-pagamento-content">
-                                        {/* Cabeçalho do Modal */}
                                         <div className="modal-header modal-pagamento-header">
                                             <h5 className="modal-title modal-pagamento-title">
                                                 Gerenciar Pagamento
@@ -525,10 +440,7 @@ const ConsultarCliente = () => {
                                                 onClick={() => setEmprestimoSelecionado(null)}
                                             ></button>
                                         </div>
-
-                                        {/* Corpo do Modal */}
                                         <div className="modal-body modal-pagamento-body">
-                                            {/* Informações do Empréstimo */}
                                             <div className="modal-pagamento-info-group">
                                                 <div className="modal-pagamento-info-item">
                                                     <strong className="modal-pagamento-info-label">
@@ -554,8 +466,7 @@ const ConsultarCliente = () => {
                                                         className={`modal-pagamento-badge ${
                                                             emprestimoSelecionado.statusPagamento === "PAGO"
                                                                 ? "modal-pagamento-badge-quitado"
-                                                                : emprestimoSelecionado.statusPagamento ===
-                                                                "ATRASADO"
+                                                                : emprestimoSelecionado.statusPagamento === "ATRASADO"
                                                                     ? "modal-pagamento-badge-atrasado"
                                                                     : "modal-pagamento-badge-pendente"
                                                         }`}
@@ -572,8 +483,6 @@ const ConsultarCliente = () => {
                           </span>
                                                 </div>
                                             </div>
-
-                                            {/* Pagamento Parcial - Exibir apenas quando o botão for clicado */}
                                             {mostrarCampoParcial && (
                                                 <div className="mb-3">
                                                     <label className="form-label modal-pagamento-form-label">
@@ -594,8 +503,6 @@ const ConsultarCliente = () => {
                                                     </div>
                                                 </div>
                                             )}
-
-                                            {/* Exibir erro se houver */}
                                             {erroPagamento && (
                                                 <div className="modal-pagamento-erro">
                                                     <i className="bi bi-exclamation-circle me-2"></i>
@@ -603,14 +510,10 @@ const ConsultarCliente = () => {
                                                 </div>
                                             )}
                                         </div>
-
-                                        {/* Footer com Botões */}
                                         <div className="modal-footer modal-pagamento-footer">
                                             {emprestimoSelecionado.statusPagamento === "PAGO" ? (
                                                 <div className="d-flex justify-content-center w-100">
-                          <span className="fw-bold">
-                            Empréstimo já quitado
-                          </span>
+                                                    <span className="fw-bold">Empréstimo já quitado</span>
                                                     <button
                                                         className="modal-pagamento-btn-fechar ms-3"
                                                         onClick={() => setEmprestimoSelecionado(null)}
@@ -641,7 +544,6 @@ const ConsultarCliente = () => {
                                                                 "Quitar Parcialmente"
                                                             )}
                                                         </button>
-
                                                         <button
                                                             className="modal-pagamento-btn-total"
                                                             onClick={handleQuitarEmprestimo}
@@ -661,7 +563,6 @@ const ConsultarCliente = () => {
                                                             )}
                                                         </button>
                                                     </div>
-
                                                     <button
                                                         className="modal-pagamento-btn-fechar"
                                                         onClick={() => setEmprestimoSelecionado(null)}
