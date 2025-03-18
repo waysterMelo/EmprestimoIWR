@@ -29,10 +29,13 @@ const ConsultarClienteService = {
 
 
     pagarParcialmente: async (emprestimoId, valorPago) => {
-        const url = `${BASE_URL}/emprestimo/${emprestimoId}/pagar-parcialmente`;
-        return axios.put(url, {}, {
-            params: { valorPago }
-        });
+        // Converta o valorPago para número se ainda não for
+        const valorNumerico = parseFloat(valorPago);
+
+        // Use o endpoint correto e envie o valor como parte do corpo da requisição
+        return axios.put(`${BASE_URL}/emprestimo/${emprestimoId}/pagar-parcialmente`,
+            { valorPago: valorNumerico }
+        );
     }
 
 
