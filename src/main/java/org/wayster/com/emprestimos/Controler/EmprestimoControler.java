@@ -42,11 +42,6 @@ public class EmprestimoControler {
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    /**
-     * Endpoint para buscar os empréstimos vencidos hoje.
-     *
-     * @return ResponseEntity contendo os empréstimos e as somas calculadas.
-     */
     @GetMapping("/vencidos-hoje")
     public ResponseEntity<ResumoEmprestimosVencidos> buscarEmprestimosVencidosHoje() {
         ResumoEmprestimosVencidos resultado = emprestimoService.buscarEmprestimosVencidosHoje();

@@ -52,6 +52,11 @@ public class EmprestimoService {
                     EmprestimoEntity emprestimoEntity = emprestimosMapper.toEntity(emprestimoDto, cliente);
                     EmprestimoEntity emprestimoSalvo = emprestimoRepository.save(emprestimoEntity);
 
+                    emprestimoSalvo.setValorDevidoApenasMostrar(emprestimoSalvo.getValorComJuros());
+
+                    // Salva novamente o empréstimo com o campo atualizado
+                    emprestimoRepository.save(emprestimoSalvo);
+
                     DateTimeFormatter formatterBR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
                     // Envia via template do WhatsApp (sem valor pago)

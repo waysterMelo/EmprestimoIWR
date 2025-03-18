@@ -26,6 +26,7 @@ public class EmprestimoEntity {
     private Double valorEmprestimo;
     private Double taxaJuros; // 0.40 (40%)
     private Double valorComJuros;
+    private Double valorDevidoApenasMostrar;
     private LocalDate dataEmprestimo;
     private LocalDate dataVencimento;
     private String observacao;

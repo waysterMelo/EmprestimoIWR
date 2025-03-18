@@ -26,7 +26,10 @@ public class EmprestimoDto {
 
     @NotNull(message = "A taxa de juros não pode ser nula.")
     private Double taxaJuros;
+
     private Double valorComJuros;
+
+    private Double valorDevidoApenasMostrar;
 
     @FutureOrPresent(message = "A data do empréstimo não pode estar no passado.")
     private LocalDate dataEmprestimo;
