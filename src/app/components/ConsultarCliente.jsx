@@ -24,6 +24,18 @@ const ConsultarCliente = () => {
     const [erroPagamento, setErroPagamento] = useState("");
     const [isProcessing, setIsProcessing] = useState(false);
     const [mostrarCampoParcial, setMostrarCampoParcial] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
+
+    // Calcula quantas páginas no total (arredonda pra cima)
+    const totalPages = Math.ceil(emprestimos.length / itemsPerPage);
+
+    // Índices de início e fim no array
+    const indexOfLastItem = currentPage * itemsPerPage; // ex: se currentPage=2 e itemsPerPage=5 => 2*5=10
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage; // ex: 10 - 5 = 5
+
+    // Recorta só os empréstimos daquela "página"
+    const currentEmprestimos = emprestimos.slice(indexOfFirstItem, indexOfLastItem);
 
     // Função auxiliar: faz a busca do cliente por CPF (sem preventDefault)
     const fetchClientePorCpf = async (cpfNumerico) => {
@@ -31,10 +43,9 @@ const ConsultarCliente = () => {
         setErro("");
 
         try {
-            const response =
-                await ConsultarClienteService.buscarClienteComEmprestimosPorCpf(
-                    cpfNumerico
-                );
+            const response = await ConsultarClienteService.buscarClienteComEmprestimosPorCpf(
+                cpfNumerico
+            );
             if (response.data) {
                 setCliente(response.data.cliente);
                 setEmprestimos(response.data.emprestimos);
@@ -58,7 +69,7 @@ const ConsultarCliente = () => {
 
     // Maneira antiga, vinculada ao form (chamado no onSubmit)
     const handleBuscarCliente = async (e) => {
-        e.preventDefault(); // Agora não quebra, pois 'e' realmente vem do formulário
+        e.preventDefault();
 
         const cpfNumerico = cpf.replace(/\D/g, "");
         if (cpfNumerico.length !== 11) {
@@ -125,8 +136,7 @@ const ConsultarCliente = () => {
             await ConsultarClienteService.quitarEmprestimo(emprestimoSelecionado.id);
             alert("Empréstimo quitado com sucesso!");
 
-            // Ao invés de handleBuscarCliente(), chamamos a função auxiliar para recarregar
-            // o mesmo CPF que está no estado
+            // Recarrega o cliente no front, mantendo o CPF atual
             await fetchClientePorCpf(cpf.replace(/\D/g, ""));
 
             // Fecha o modal
@@ -156,7 +166,9 @@ const ConsultarCliente = () => {
         }
 
         const valorParcialFloat = parseFloat(valorParcial);
-        const valorTotal = emprestimoSelecionado.valorComJuros || emprestimoSelecionado.valorEmprestimo;
+        const valorTotal =
+            emprestimoSelecionado.valorComJuros ||
+            emprestimoSelecionado.valorEmprestimo;
 
         if (valorParcialFloat >= valorTotal) {
             setErroPagamento(
@@ -173,7 +185,9 @@ const ConsultarCliente = () => {
                 valorParcialFloat
             );
             alert(
-                `Pagamento parcial de ${formatarValor(valorParcialFloat)} realizado com sucesso!`
+                `Pagamento parcial de ${formatarValor(
+                    valorParcialFloat
+                )} realizado com sucesso!`
             );
 
             // Recarrega o cliente no front
@@ -284,7 +298,9 @@ const ConsultarCliente = () => {
                                                         <div className="d-flex align-items-center mb-2">
                                                             <i className="bi bi-person-fill fs-4 me-3 text-primary"></i>
                                                             <div>
-                                                                <small className="text-muted d-block">Nome</small>
+                                                                <small className="text-muted d-block">
+                                                                    Nome
+                                                                </small>
                                                                 <span className="fw-bold">{cliente.nome}</span>
                                                             </div>
                                                         </div>
@@ -292,7 +308,9 @@ const ConsultarCliente = () => {
                                                         <div className="d-flex align-items-center mb-2">
                                                             <i className="bi bi-credit-card-2-front fs-4 me-3 text-primary"></i>
                                                             <div>
-                                                                <small className="text-muted d-block">CPF</small>
+                                                                <small className="text-muted d-block">
+                                                                    CPF
+                                                                </small>
                                                                 <span className="fw-bold">
                                   {formatCpf(cliente.cpf)}
                                 </span>
@@ -302,7 +320,9 @@ const ConsultarCliente = () => {
                                                         <div className="d-flex align-items-center mb-2">
                                                             <i className="bi bi-envelope-fill fs-4 me-3 text-primary"></i>
                                                             <div>
-                                                                <small className="text-muted d-block">E-mail</small>
+                                                                <small className="text-muted d-block">
+                                                                    E-mail
+                                                                </small>
                                                                 <span className="fw-bold">{cliente.email}</span>
                                                             </div>
                                                         </div>
@@ -399,7 +419,7 @@ const ConsultarCliente = () => {
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            {emprestimos.map((emprestimo) => (
+                                            {currentEmprestimos.map((emprestimo) => (
                                                 <tr
                                                     key={emprestimo.id}
                                                     onClick={() => abrirModalEmprestimo(emprestimo)}
@@ -407,7 +427,11 @@ const ConsultarCliente = () => {
                                                 >
                                                     <td>{emprestimo.id}</td>
                                                     <td>{formatarValor(emprestimo.valorEmprestimo)}</td>
-                                                    <td>{formatarValor(emprestimo.valorDevidoApenasMostrar)}</td>
+                                                    <td>
+                                                        {formatarValor(
+                                                            emprestimo.valorDevidoApenasMostrar
+                                                        )}
+                                                    </td>
                                                     <td>{formatarData(emprestimo.dataEmprestimo)}</td>
                                                     <td>{formatarData(emprestimo.dataVencimento)}</td>
                                                     <td>
@@ -417,17 +441,66 @@ const ConsultarCliente = () => {
                                           ? "bg-success"
                                           : emprestimo.statusPagamento === "ATRASADO"
                                               ? "bg-danger"
-                                              : "bg-warning" // Se não for PAGO nem ATRASADO, assume PENDENTE
+                                              : "bg-warning"
                                   }`}
                               >
                                 {emprestimo.statusPagamento}
                               </span>
                                                     </td>
-                                                    <td>{emprestimo.observacao}</td>
+                                                    <td>
+                                                        {emprestimo.observacao &&
+                                                            emprestimo.observacao
+                                                                .split(".")
+                                                                .map((trecho, index) => (
+                                                                    <p key={index}>{trecho.trim()}</p>
+                                                                ))}
+                                                    </td>
                                                 </tr>
                                             ))}
                                             </tbody>
                                         </table>
+                                        <div className="pagination-container">
+                                            {/* Botão "Anterior" */}
+                                            <button
+                                                onClick={() =>
+                                                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                                                }
+                                                disabled={currentPage === 1}
+                                                className="btn btn-secondary me-2"
+                                            >
+                                                Anterior
+                                            </button>
+
+                                            {/* Lista de páginas */}
+                                            {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+                                                (pageNumber) => (
+                                                    <button
+                                                        key={pageNumber}
+                                                        onClick={() => setCurrentPage(pageNumber)}
+                                                        className={`btn me-2 ${
+                                                            pageNumber === currentPage
+                                                                ? "btn-primary"
+                                                                : "btn-outline-primary"
+                                                        }`}
+                                                    >
+                                                        {pageNumber}
+                                                    </button>
+                                                )
+                                            )}
+
+                                            {/* Botão "Próximo" */}
+                                            <button
+                                                onClick={() =>
+                                                    setCurrentPage((prev) =>
+                                                        Math.min(prev + 1, totalPages)
+                                                    )
+                                                }
+                                                disabled={currentPage === totalPages}
+                                                className="btn btn-secondary"
+                                            >
+                                                Próximo
+                                            </button>
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="alert alert-info">
@@ -534,9 +607,10 @@ const ConsultarCliente = () => {
                                         {/* Footer com Botões */}
                                         <div className="modal-footer modal-pagamento-footer">
                                             {emprestimoSelecionado.statusPagamento === "PAGO" ? (
-                                                /* Se o empréstimo está PAGO, só exibe a mensagem */
                                                 <div className="d-flex justify-content-center w-100">
-                                                    <span className="fw-bold">Empréstimo já quitado</span>
+                          <span className="fw-bold">
+                            Empréstimo já quitado
+                          </span>
                                                     <button
                                                         className="modal-pagamento-btn-fechar ms-3"
                                                         onClick={() => setEmprestimoSelecionado(null)}
@@ -545,7 +619,6 @@ const ConsultarCliente = () => {
                                                     </button>
                                                 </div>
                                             ) : (
-                                                /* Caso contrário, exibe botões de pagamento */
                                                 <>
                                                     <div className="modal-pagamento-botoes">
                                                         <button
@@ -562,9 +635,11 @@ const ConsultarCliente = () => {
                                   ></span>
                                                                     Processando...
                                                                 </>
-                                                            ) : mostrarCampoParcial
-                                                                ? "Confirmar Pagamento Parcial"
-                                                                : "Quitar Parcialmente"}
+                                                            ) : mostrarCampoParcial ? (
+                                                                "Confirmar Pagamento Parcial"
+                                                            ) : (
+                                                                "Quitar Parcialmente"
+                                                            )}
                                                         </button>
 
                                                         <button
