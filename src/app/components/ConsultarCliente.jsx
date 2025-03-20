@@ -12,6 +12,9 @@ import {
 import "../css/ConsultarCliente.css";
 import BootstrapAlertModal from "./BootstrapAlertModal";
 
+// 1) Importe o ModalAtualizarCliente
+import ModalAtualizarCliente from "./ModalAtualizarCliente";
+
 const ConsultarCliente = () => {
     const [cpf, setCpf] = useState("");
     const [cliente, setCliente] = useState(null);
@@ -29,6 +32,9 @@ const ConsultarCliente = () => {
     const itemsPerPage = 5;
     const [modalMessage, setModalMessage] = useState("");
 
+    // 2) Criar estado para controlar exibição do ModalAtualizarCliente
+    const [showModalAtualizar, setShowModalAtualizar] = useState(false);
+
     // Paginação
     const totalPages = Math.ceil(emprestimos.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -42,11 +48,16 @@ const ConsultarCliente = () => {
         setIsLoading(true);
         setErro("");
         try {
-            const response = await ConsultarClienteService.buscarClienteComEmprestimosPorCpf(cpfNumerico);
+            const response = await ConsultarClienteService.buscarClienteComEmprestimosPorCpf(
+                cpfNumerico
+            );
             if (response.data) {
                 setCliente(response.data.cliente);
                 setEmprestimos(response.data.emprestimos);
-                const fotoResponse = await ConsultarClienteService.buscarFotoClinte(cpfNumerico);
+
+                const fotoResponse = await ConsultarClienteService.buscarFotoClinte(
+                    cpfNumerico
+                );
                 const imgUrl = URL.createObjectURL(fotoResponse.data);
                 setFoto(imgUrl);
             }
@@ -98,9 +109,11 @@ const ConsultarCliente = () => {
         setCpf(formattedCpf);
     };
 
+    // 3) Alterar a função para abrir o modal em vez de navegar para outra página
     const handleAtualizarCliente = () => {
         if (cliente && cliente.id) {
-            navigate(`/atualizar-cliente/${cliente.id}`);
+            // Antes era: navigate(`/atualizar-cliente/${cliente.id}`);
+            setShowModalAtualizar(true);
         } else {
             setModalMessage("Cliente não encontrado para atualizar.");
         }
@@ -208,6 +221,7 @@ const ConsultarCliente = () => {
                                 </div>
                             </div>
                         </form>
+
                         {erro && (
                             <div className="alert alert-danger mt-3">
                                 <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
@@ -262,9 +276,7 @@ const ConsultarCliente = () => {
                                                             <i className="bi bi-credit-card-2-front fs-4 me-3 text-primary"></i>
                                                             <div>
                                                                 <small className="text-muted d-block">CPF</small>
-                                                                <span className="fw-bold">
-                                  {formatCpf(cliente.cpf)}
-                                </span>
+                                                                <span className="fw-bold">{formatCpf(cliente.cpf)}</span>
                                                             </div>
                                                         </div>
                                                         <div className="d-flex align-items-center mb-2">
@@ -319,10 +331,7 @@ const ConsultarCliente = () => {
                                                 </div>
                                             </div>
                                             <div className="d-flex justify-content-end mt-4">
-                                                <button
-                                                    className="btn btn-primary"
-                                                    onClick={handleAtualizarCliente}
-                                                >
+                                                <button className="btn btn-primary" onClick={handleAtualizarCliente}>
                                                     <i className="bi bi-pencil-square me-2"></i>
                                                     Atualizar Dados
                                                 </button>
@@ -386,9 +395,7 @@ const ConsultarCliente = () => {
                                         </table>
                                         <div className="pagination-container">
                                             <button
-                                                onClick={() =>
-                                                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                                                }
+                                                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                                                 disabled={currentPage === 1}
                                                 className="btn btn-secondary me-2"
                                             >
@@ -429,7 +436,7 @@ const ConsultarCliente = () => {
                         )}
                         {emprestimoSelecionado && (
                             <div className="modal fade show d-block modal-pagamento-overlay">
-                                <div className="modal-dialog modal-pagamento-dialog">
+                                <div className="modal-dialog modal-dialog-centered modal-dialog modal-pagamento-dialog">
                                     <div className="modal-content modal-pagamento-content">
                                         <div className="modal-header modal-pagamento-header">
                                             <h5 className="modal-title modal-pagamento-title">
@@ -443,9 +450,7 @@ const ConsultarCliente = () => {
                                         <div className="modal-body modal-pagamento-body">
                                             <div className="modal-pagamento-info-group">
                                                 <div className="modal-pagamento-info-item">
-                                                    <strong className="modal-pagamento-info-label">
-                                                        ID:
-                                                    </strong>
+                                                    <strong className="modal-pagamento-info-label">ID:</strong>
                                                     <span className="modal-pagamento-info-value">
                             {emprestimoSelecionado.id}
                           </span>
@@ -459,9 +464,7 @@ const ConsultarCliente = () => {
                           </span>
                                                 </div>
                                                 <div className="modal-pagamento-info-item">
-                                                    <strong className="modal-pagamento-info-label">
-                                                        Status:
-                                                    </strong>
+                                                    <strong className="modal-pagamento-info-label">Status:</strong>
                                                     <span
                                                         className={`modal-pagamento-badge ${
                                                             emprestimoSelecionado.statusPagamento === "PAGO"
@@ -579,6 +582,19 @@ const ConsultarCliente = () => {
                     </div>
                 </div>
             </div>
+
+            {/* 4) Renderizar o modal de atualização quando showModalAtualizar for true */}
+            {showModalAtualizar && (
+                <ModalAtualizarCliente
+                    cliente={cliente}
+                    onClose={() => setShowModalAtualizar(false)}
+                    onClienteAtualizado={async () => {
+                        // Se quiser recarregar os dados após salvar
+                        await fetchClientePorCpf(cpf.replace(/\D/g, ""));
+                        setShowModalAtualizar(false);
+                    }}
+                />
+            )}
         </div>
     );
 };

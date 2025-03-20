@@ -62,7 +62,7 @@ class ClientesServices {
 
     async atualizarCliente(id, cliente) {
         try {
-            const response = await axios.put(`/api/clientes/${id}`, cliente);
+            const response = await axios.put(`/clientes/${id}`, cliente);
             return response;
         } catch (error) {
             throw new Error(error.response?.data?.message || 'Erro ao atualizar cliente.');
