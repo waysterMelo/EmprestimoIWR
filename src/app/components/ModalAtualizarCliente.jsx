@@ -305,7 +305,7 @@ const ModalAtualizarCliente = ({ cliente, onClose, onClienteAtualizado }) => {
                                     <div className="container">
                                         <div className="row justify-content-center">
                                             <div className="col-lg-12 col-md-10 col-sm-12">
-                                                <div className="card shadow p-4 mb-5">
+                                                <div className="card shadow p-2 mb-5">
                                                     <div className="address-header mb-4">
                                                         <h3 className="d-flex align-items-center">
                                                             <i className="bi bi-house-door me-2"></i>
