@@ -10,6 +10,8 @@ import org.wayster.com.emprestimos.Dto.EmprestimoDto;
 import org.wayster.com.emprestimos.Dto.ResumoEmprestimosVencidos;
 import org.wayster.com.emprestimos.Service.EmprestimoService;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/emprestimo")
 @RequiredArgsConstructor
@@ -35,7 +37,7 @@ public class EmprestimoControler {
     }
 
 
-    @PostMapping("/{emprestimoId}/baixar")
+    @PutMapping("/baixa/{emprestimoId}")
     public ResponseEntity<EmprestimoDto> baixarPagamento(@PathVariable Long emprestimoId) {
         return emprestimoService.realizarBaixaPagamento(emprestimoId)
                 .map(ResponseEntity::ok)
@@ -51,7 +53,9 @@ public class EmprestimoControler {
     @PutMapping("/{emprestimoId}/pagar-parcialmente")
     public ResponseEntity<EmprestimoDto> pagarParcialmente(
             @PathVariable Long emprestimoId,
-            @RequestParam double valorPago) {
+            @RequestBody Map<String, Double> pagamentoRequest) {
+
+        double valorPago = pagamentoRequest.get("valorPago");
 
         return emprestimoService.pagarParcialmente(emprestimoId, valorPago)
                 .map(dto -> ResponseEntity.ok().body(dto))

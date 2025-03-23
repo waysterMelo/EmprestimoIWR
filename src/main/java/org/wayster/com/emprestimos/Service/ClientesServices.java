@@ -67,6 +67,7 @@ public class ClientesServices {
                 .map(clienteExistente -> {
                     // Atualiza os campos do cliente existente
                     clienteExistente.setNome(clienteDto.getNome());
+                    clienteExistente.setEmail(clienteDto.getEmail());
                     clienteExistente.setTelefone(clienteDto.getTelefone());
                     clienteExistente.setCpf(clienteDto.getCpf());
                     clienteExistente.setEndereco(clienteDto.getEndereco());

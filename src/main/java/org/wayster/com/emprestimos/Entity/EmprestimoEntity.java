@@ -24,11 +24,12 @@ public class EmprestimoEntity {
     private ClientesEntity cliente;
 
     private Double valorEmprestimo;
-    private Double taxaJuros; // 0.40 (40%)
+    private Double taxaJuros;
     private Double valorComJuros;
     private Double valorDevidoApenasMostrar;
     private LocalDate dataEmprestimo;
     private LocalDate dataVencimento;
+    @Column(length = 1000)
     private String observacao;
 
     @Enumerated(EnumType.STRING)
