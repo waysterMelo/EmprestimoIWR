@@ -53,8 +53,8 @@ const Home = () => {
             ))}
 
             <div className="home-card">
-                <h1 className="home-title">💰 Bem-vindo ao Sistema de Empréstimos</h1>
-                <p className="home-subtitle">Gerencie seus empréstimos de forma rápida e segura.</p>
+                <h1 className="text-white fw-bold">Bem-vindo ao Sistema de Empréstimos</h1><br/>
+                <p className="home-subtitle">Gerencie seus empréstimos de forma rápida e segura. 💰</p>
                 <div className="button-container">
                     <button className="btn-home" onClick={() => navigate("/realizar-emprestimo")}>
                         Cadastrar Empréstimo

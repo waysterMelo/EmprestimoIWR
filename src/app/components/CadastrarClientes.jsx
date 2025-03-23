@@ -115,16 +115,16 @@ const CadastrarClientes = () => {
         <div className="container-fluid py-5 background">
             <div className="row justify-content-center">
                 <div className="col-md-8 col-lg-6">
+                    {/* Home Button - Positioned at top-left of the form */}
+                    <button
+                        onClick={voltarTelaInicial}
+                        className="btn btn-dark position-absolute top-0 start-0 m-3 d-flex align-items-center"
+                        style={{ zIndex: 10 }}
+                    >
+                        <ArrowLeft size={20} className="me-2 text-info" />
+                        Tela Inicial
+                    </button>
                     <div className="card shadow-lg border-0 rounded-lg">
-                        {/* Home Button - Positioned at top-left of the form */}
-                        <button
-                            onClick={voltarTelaInicial}
-                            className="btn btn-dark position-absolute top-0 start-0 m-3 d-flex align-items-center"
-                            style={{ zIndex: 10 }}
-                        >
-                            <ArrowLeft size={20} className="me-2 text-info" />
-                            Tela Inicial
-                        </button>
                         <div className="bg-gradient-primary text-white text-center">
                             <UserPlus size={48} className="mb-3" />
                             <h2 className="display-6 mb-0 text-dark">Cadastrar Novo Cliente</h2>

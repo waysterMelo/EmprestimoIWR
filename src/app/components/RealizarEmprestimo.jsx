@@ -89,18 +89,17 @@ const RealizarEmprestimo = () => {
         <div className="container-fluid py-5 background">
             <div className="row justify-content-center">
                 <div className="col-md-8 col-lg-12">
+                    <button
+                        onClick={() => navigate('/')}
+                        className="btn btn-dark position-absolute top-0 start-0 m-3 d-flex align-items-center"
+                        style={{zIndex: 10}}
+                    >
+                        <ArrowLeft size={20} className="me-2 text-info"/>
+                        Tela Inicial
+                    </button>
                     <div className="card shadow-lg border-0 rounded-lg position-relative">
-                        <button
-                            onClick={() => navigate('/')}
-                            className="btn btn-dark position-absolute top-0 start-0 m-3 d-flex align-items-center"
-                            style={{ zIndex: 10 }}
-                        >
-                            <ArrowLeft size={20} className="me-2 text-info" />
-                            Tela Inicial
-                        </button>
-
                         <div className="bg-gradient-primary text-white text-center py-3">
-                            <DollarSign size={48} className="mb-2" />
+                            <DollarSign size={48} className="mb-2"/>
                             <h2 className="display-6 mb-0 text-dark">Realizar Empréstimo</h2>
                         </div>
 
@@ -117,7 +116,7 @@ const RealizarEmprestimo = () => {
                                             onChange={(e) => setBuscaCpf(e.target.value)}
                                         />
                                         <button className="btn btn-primary" onClick={buscarClientePorCpf}>
-                                            <Search size={20} />
+                                            <Search size={20}/>
                                         </button>
                                     </div>
                                 </div>
@@ -214,7 +213,7 @@ const RealizarEmprestimo = () => {
                             </div>
 
                             <button className="btn btn-success w-100" onClick={handleSalvar}>
-                                <Save size={20} className="me-2" /> Salvar Empréstimo
+                                <Save size={20} className="me-2"/> Salvar Empréstimo
                             </button>
                         </div>
 
@@ -229,7 +228,7 @@ const RealizarEmprestimo = () => {
 
             {/* Modal de Sucesso */}
             {showSuccessModal && (
-                <div className="modal fade show" tabIndex="-1" style={{ display: "block" }}>
+                <div className="modal fade show" tabIndex="-1" style={{display: "block"}}>
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">

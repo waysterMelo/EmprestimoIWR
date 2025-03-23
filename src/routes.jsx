@@ -5,12 +5,13 @@ import EmprestimosVencidosHoje from './app/components/EmprestimosVencidosHoje';
 import Home from "./Home";
 import CadastrarClientes from "./app/components/CadastrarClientes";
 import ConsultarCliente from "./app/components/ConsultarCliente";
+import Login from "./app/components/Login";
 
 function RoutesApp(){
     return (
         <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/" element={<h1>Bem-vindo ao Sistema de Empréstimos</h1>} />
+            <Route path="/" element={<Login />} />
+            <Route path="/home" element={<Home />} />
             <Route path={'/realizar-emprestimo'} element={ <CadastrarEmprestimo/> }/>
             <Route path="/consultar-cliente" element={<ConsultarCliente />} />
             <Route path="/vencidos-hoje" element={<EmprestimosVencidosHoje />} />
