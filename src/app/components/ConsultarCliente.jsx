@@ -55,7 +55,7 @@ const ConsultarCliente = () => {
                 setCliente(response.data.cliente);
                 setEmprestimos(response.data.emprestimos);
 
-                const fotoResponse = await ConsultarClienteService.buscarFotoClinte(
+                const fotoResponse = await ConsultarClienteService.buscarFotoCliente(
                     cpfNumerico
                 );
                 const imgUrl = URL.createObjectURL(fotoResponse.data);
@@ -192,7 +192,7 @@ const ConsultarCliente = () => {
                 {/* Botão Voltar para a home */}
                 <div style={{ textAlign: 'center', marginTop: '2rem' }}>
                     <button
-                        onClick={() => navigate('/')}
+                        onClick={() => navigate('/home')}
                         className="btn btn-dark position-absolute top-0 start-0 m-3 d-flex align-items-center"
                         style={{ zIndex: 10 }}
                     >

@@ -1,44 +1,57 @@
-// services/ConsultarClienteService.js
 import axios from "axios";
 
-const BASE_URL = process.env.REACT_APP_API_URL;
+const API_BASE_URL = "http://localhost:8080";
 
+// Recupera o token do localStorage e monta o header
+const getAuthHeader = () => {
+    const token = localStorage.getItem("token");
+    return {
+        Authorization: `Bearer ${token}`
+    };
+};
+
+// Busca cliente e seus empréstimos por CPF
+const buscarClienteComEmprestimosPorCpf = (cpf) => {
+    return axios.get(`${API_BASE_URL}/clientes/buscar-com-emprestimos/${cpf}`, {
+        headers: getAuthHeader()
+    });
+};
+
+// Quita um empréstimo
+const quitarEmprestimo = (emprestimoId) => {
+    return axios.put(`${API_BASE_URL}/emprestimo/baixa/${emprestimoId}`, {}, {
+        headers: getAuthHeader()
+    });
+};
+
+// Realiza pagamento parcial
+const pagarParcialmente = (emprestimoId, valor) => {
+    return axios.put(
+        `http://localhost:8080/emprestimo/${emprestimoId}/pagar-parcialmente`,
+        { valorPago: valor },
+        {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                'Content-Type': 'application/json'
+            }
+        }
+    );
+};
+
+// Busca foto do cliente por CPF
+const buscarFotoCliente = (cpf) => {
+    return axios.get(`${API_BASE_URL}/clientes/foto/${cpf}`, {
+        headers: getAuthHeader(),
+        responseType: "blob", // importante para lidar com imagem
+    });
+};
+
+// Exporta os métodos agrupados
 const ConsultarClienteService = {
-    buscarClientePorCpf: async (cpf) => {
-        return axios.get(`${BASE_URL}/buscar-por-cpf/${cpf}`);
-    },
-
-
-    buscarClienteComEmprestimosPorCpf: async (cpf) => {
-        return axios.get(`${BASE_URL}/clientes/buscar-com-emprestimos/${cpf}`);
-    },
-
-    atualizarCliente: async (id, clienteDto) => {
-        return axios.put(`${BASE_URL}/${id}`, clienteDto);
-    },
-
-
-    buscarFotoClinte: async (cpf) => {
-        return axios.get(`${BASE_URL}/clientes/foto/${cpf}`, {responseType: "blob"});
-    },
-
-
-    quitarEmprestimo: async (emprestimoId) => {
-        return axios.put(`${BASE_URL}/emprestimo/baixa/${emprestimoId}`);
-    },
-
-
-    pagarParcialmente: async (emprestimoId, valorPago) => {
-        // Converta o valorPago para número se ainda não for
-        const valorNumerico = parseFloat(valorPago);
-
-        // Use o endpoint correto e envie o valor como parte do corpo da requisição
-        return axios.put(`${BASE_URL}/emprestimo/${emprestimoId}/pagar-parcialmente`,
-            { valorPago: valorNumerico }
-        );
-    }
-
-
+    buscarClienteComEmprestimosPorCpf,
+    quitarEmprestimo,
+    pagarParcialmente,
+    buscarFotoCliente
 };
 
 export default ConsultarClienteService;

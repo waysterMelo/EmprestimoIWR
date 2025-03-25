@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getToken } from './AuthService';
 
 const api_url = process.env.REACT_APP_API_URL;
 
@@ -11,42 +12,27 @@ class ClientesServices {
         this.API_URL = baseUrl;
     }
 
-    #criarFormData(dados, foto) {
-        const formData = new FormData();
-        Object.entries(dados).forEach(([key, value]) => {
-            if (value !== null && value !== undefined) {
-                formData.append(key, value.toString()); // Converte valores numéricos e booleanos para string
-            }
-        });
-        if (foto) {
-            formData.append("foto", foto);
-        }
-        return formData;
+    getAuthHeaders() {
+        const token = localStorage.getItem("token");
+        return {
+            Authorization: `Bearer ${token}`,
+        };
     }
-
 
     async cadastrarCliente(dados, foto) {
         try {
-            // Usa sempre FormData, pois o endpoint espera multipart/form-data
             const formData = new FormData();
-
-            // Adiciona todos os campos ao FormData
             Object.entries(dados).forEach(([key, value]) => {
                 if (value !== null && value !== undefined) {
                     formData.append(key, value.toString());
                 }
             });
-
-            // Adiciona a foto, se existir
             if (foto) {
                 formData.append("foto", foto);
             }
 
-            // Realiza a requisição sem definir manualmente o Content-Type
             const response = await axios.post(`${this.API_URL}/clientes`, formData, {
-                headers: {
-                    // Deixe o axios definir automaticamente o Content-Type
-                },
+                headers: this.getAuthHeaders()
             });
 
             return response.data;
@@ -59,11 +45,12 @@ class ClientesServices {
         }
     }
 
-
     async atualizarCliente(id, cliente) {
         try {
-            const response = await axios.put(`/clientes/${id}`, cliente);
-            return response;
+            const response = await axios.put(`${this.API_URL}/clientes/${id}`, cliente, {
+                headers: this.getAuthHeaders()
+            });
+            return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.message || 'Erro ao atualizar cliente.');
         }
@@ -71,30 +58,22 @@ class ClientesServices {
 
     async excluirCliente(id) {
         try {
-            const response = await axios.delete(`/api/clientes/${id}`);
-            return response;
+            const response = await axios.delete(`${this.API_URL}/clientes/${id}`, {
+                headers: this.getAuthHeaders()
+            });
+            return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.message || 'Erro ao excluir cliente.');
         }
     }
 
-    async buscarClientePorCpf(cpf){
-        try {
-            const response = axios.get(`/clientes/buscar-por-cpf/${cpf}`)
-            return response
-        }catch (error){
-            throw new Error(error.response?.data?.message || 'Erro ao buscar cliente.');
-        }
-    }
-
-
-    async buscarClientePorNome(nome) {
-        try {
-            const response = await axios.get(`/clientes/buscar-por-nome/${nome}`);
-            return response;
-        } catch (error) {
-            throw new Error(error.response?.data?.message || 'Erro ao buscar cliente pelo nome.');
-        }
+    async buscarClientePorCpf(cpf) {
+        const response = await axios.get(`http://localhost:8080/clientes/buscar-por-cpf/${cpf}`, {
+            headers: {
+                Authorization: `Bearer ${getToken()}`,
+            }
+        });
+        return response;
     }
 
 }

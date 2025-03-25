@@ -331,3 +331,58 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+.modal-pagamento-botoes {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.modal-pagamento-btn-parcial,
+.modal-pagamento-btn-total,
+.modal-pagamento-btn-fechar {
+    padding: 10px 20px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+}
+
+.modal-pagamento-btn-parcial {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.modal-pagamento-btn-parcial:hover {
+    background-color: #e0a800;
+    transform: scale(1.03);
+}
+
+.modal-pagamento-btn-total {
+    background-color: #28a745;
+    color: white;
+}
+
+.modal-pagamento-btn-total:hover {
+    background-color: #218838;
+    transform: scale(1.03);
+}
+
+.modal-pagamento-btn-fechar {
+    background-color: #6c757d;
+    color: white;
+}
+
+.modal-pagamento-btn-fechar:hover {
+    background-color: #5a6268;
+    transform: scale(1.03);
+}
+
+.modal-pagamento-spinner {
+    margin-right: 6px;
+}

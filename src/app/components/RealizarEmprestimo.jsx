@@ -90,7 +90,7 @@ const RealizarEmprestimo = () => {
             <div className="row justify-content-center">
                 <div className="col-md-8 col-lg-12">
                     <button
-                        onClick={() => navigate('/')}
+                        onClick={() => navigate('/home')}
                         className="btn btn-dark position-absolute top-0 start-0 m-3 d-flex align-items-center"
                         style={{zIndex: 10}}
                     >

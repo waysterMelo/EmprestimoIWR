@@ -108,7 +108,7 @@ const CadastrarClientes = () => {
     ];
 
     const voltarTelaInicial = () => {
-        navigate('/'); // Adjust the path to match your app's routing
+        navigate('/home');
     };
 
     return (
