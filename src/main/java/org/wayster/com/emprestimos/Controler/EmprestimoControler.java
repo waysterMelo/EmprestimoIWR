@@ -57,8 +57,12 @@ public class EmprestimoControler {
 
         double valorPago = pagamentoRequest.get("valorPago");
 
+        if (!pagamentoRequest.containsKey("valorPago")) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
         return emprestimoService.pagarParcialmente(emprestimoId, valorPago)
-                .map(dto -> ResponseEntity.ok().body(dto))
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
