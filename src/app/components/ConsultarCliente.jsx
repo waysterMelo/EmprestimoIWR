@@ -10,10 +10,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import "../css/ConsultarCliente.css";
 import BootstrapAlertModal from "./BootstrapAlertModal";
-
-// 1) Importe o ModalAtualizarCliente
 import ModalAtualizarCliente from "./ModalAtualizarCliente";
 import {ArrowLeft} from "lucide-react";
+import BotaoSair from "./BotaoSair";
 
 const ConsultarCliente = () => {
     const [cpf, setCpf] = useState("");
@@ -189,7 +188,7 @@ const ConsultarCliente = () => {
         <div className="background-consultar">
             <BootstrapAlertModal message={modalMessage} onClose={closeModalAlert} />
             <div className="container consultar-container">
-                {/* Botão Voltar para a home */}
+               <BotaoSair />
                 <div style={{ textAlign: 'center', marginTop: '2rem' }}>
                     <button
                         onClick={() => navigate('/home')}

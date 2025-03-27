@@ -7,6 +7,7 @@ import { Modal, Button, Alert } from "react-bootstrap";
 import ClientesServices from "../services/ClientesServices";
 import "../css/CadastrarClientes.css";
 import {useNavigate} from "react-router-dom";
+import BotaoSair from "./BotaoSair";
 
 const CadastrarClientes = () => {
     const navigate = useNavigate();
@@ -115,7 +116,7 @@ const CadastrarClientes = () => {
         <div className="container-fluid py-5 background">
             <div className="row justify-content-center">
                 <div className="col-md-8 col-lg-6">
-                    {/* Home Button - Positioned at top-left of the form */}
+                  <BotaoSair />
                     <button
                         onClick={voltarTelaInicial}
                         className="btn btn-dark position-absolute top-0 start-0 m-3 d-flex align-items-center"

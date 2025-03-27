@@ -6,16 +6,20 @@ import Home from "./Home";
 import CadastrarClientes from "./app/components/CadastrarClientes";
 import ConsultarCliente from "./app/components/ConsultarCliente";
 import Login from "./app/components/Login";
+import PrivateRoute from "./app/components/PrivateRoute";
 
 function RoutesApp(){
     return (
         <Routes>
             <Route path="/" element={<Login />} />
-            <Route path="/home" element={<Home />} />
-            <Route path={'/realizar-emprestimo'} element={ <CadastrarEmprestimo/> }/>
-            <Route path="/consultar-cliente" element={<ConsultarCliente />} />
-            <Route path="/vencidos-hoje" element={<EmprestimosVencidosHoje />} />
-            <Route path="/cadastrar-cliente" element={<CadastrarClientes />} />
+
+            {/* Rotas protegidas */}
+            <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
+            <Route path="/realizar-emprestimo" element={<PrivateRoute><CadastrarEmprestimo /></PrivateRoute>} />
+            <Route path="/consultar-cliente" element={<PrivateRoute><ConsultarCliente /></PrivateRoute>} />
+            <Route path="/vencidos-hoje" element={<PrivateRoute><EmprestimosVencidosHoje /></PrivateRoute>} />
+            <Route path="/cadastrar-cliente" element={<PrivateRoute><CadastrarClientes /></PrivateRoute>} />
+
             <Route path="*" element={<h1>Página não encontrada</h1>} />
         </Routes>
     )

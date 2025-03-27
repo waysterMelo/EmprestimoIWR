@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import EmprestimoServices from "../services/EmprestimoServices";
 import ClientesServices from "../services/ClientesServices";
 import "../css/CadastrarClientes.css";
+import BotaoSair from "./BotaoSair";
 
 const RealizarEmprestimo = () => {
     const navigate = useNavigate();
@@ -89,6 +90,7 @@ const RealizarEmprestimo = () => {
         <div className="container-fluid py-5 background">
             <div className="row justify-content-center">
                 <div className="col-md-8 col-lg-12">
+                    <BotaoSair />
                     <button
                         onClick={() => navigate('/home')}
                         className="btn btn-dark position-absolute top-0 start-0 m-3 d-flex align-items-center"
