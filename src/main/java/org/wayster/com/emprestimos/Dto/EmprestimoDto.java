@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.wayster.com.emprestimos.Enums.StatusPagamento;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data

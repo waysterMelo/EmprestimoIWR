@@ -46,7 +46,7 @@ public class ClientesEntity {
     private BigDecimal limitePagamento;
 
     @Lob
-    @Column(name = "foto")
+    @Column(columnDefinition = "BLOB")
     private byte[] foto;
 
     @Column(name = "data_cadastro")

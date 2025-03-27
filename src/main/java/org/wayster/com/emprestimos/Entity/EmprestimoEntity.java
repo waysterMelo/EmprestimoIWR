@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.wayster.com.emprestimos.Enums.StatusPagamento;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Table(name = "emprestimos")

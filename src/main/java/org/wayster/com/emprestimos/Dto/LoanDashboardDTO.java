@@ -1,0 +1,18 @@
+package org.wayster.com.emprestimos.Dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class LoanDashboardDTO {
+
+    Integer mes;
+    Double totalEmprestado;
+    Double retornoEsperado;
+    Long clientes;
+    Double mediaJuros;
+
+}
