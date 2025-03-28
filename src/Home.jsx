@@ -65,6 +65,9 @@ const Home = () => {
                     <button className="btn-outline" onClick={() => navigate("/cadastrar-cliente")}>
                         Cadastrar Cliente
                     </button>
+                    <button className="btn-outline" onClick={() => navigate("/dashboard")}>
+                        Dashboard
+                    </button>
                 </div>
             </div>
         </div>

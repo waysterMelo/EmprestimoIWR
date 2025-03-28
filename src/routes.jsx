@@ -7,6 +7,8 @@ import CadastrarClientes from "./app/components/CadastrarClientes";
 import ConsultarCliente from "./app/components/ConsultarCliente";
 import Login from "./app/components/Login";
 import PrivateRoute from "./app/components/PrivateRoute";
+import LoanOverviewDashboard from './app/components/LoanOverviewDashboard';
+
 
 function RoutesApp(){
     return (
@@ -19,7 +21,7 @@ function RoutesApp(){
             <Route path="/consultar-cliente" element={<PrivateRoute><ConsultarCliente /></PrivateRoute>} />
             <Route path="/vencidos-hoje" element={<PrivateRoute><EmprestimosVencidosHoje /></PrivateRoute>} />
             <Route path="/cadastrar-cliente" element={<PrivateRoute><CadastrarClientes /></PrivateRoute>} />
-
+            <Route path="/dashboard" element={<PrivateRoute><LoanOverviewDashboard /> </PrivateRoute>} />
             <Route path="*" element={<h1>Página não encontrada</h1>} />
         </Routes>
     )
