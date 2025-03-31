@@ -1,5 +1,6 @@
 package org.wayster.com.emprestimos.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,7 +35,6 @@ public class WhatsAppService {
 
     private static final Logger logger = LoggerFactory.getLogger(WhatsAppService.class);
     private final RestTemplate restTemplate = new RestTemplate();
-
 
     public void enviarTemplateVencendoCliente(String numeroCliente, String nomeCliente, String valor, String dataVencimento) {
 
@@ -86,17 +88,18 @@ public class WhatsAppService {
         }
     }
 
-
     public void enviarTemplateVencendoAgiota(String numeroAgiota, String nomeCliente, String valor, String dataVencimento) {
-
+        // Formata o número adequadamente
         String numeroFormatado = formatarNumeroInternacional(numeroAgiota);
 
+        // Monta a URL da API
         String url = String.format("%s/%s/%s/messages", whatsappApiUrl, apiVersion, phoneNumberId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(whatsappToken);
 
+        // Usando a mesma estrutura do método 'enviarTemplateEmprestimo' que funciona
         Map<String, Object> templateBody = Map.of(
                 "name", "emprestimo_vencendo_agiota",
                 "language", Map.of("code", "pt_BR"),
@@ -112,6 +115,7 @@ public class WhatsAppService {
                 )
         );
 
+        // Payload final
         Map<String, Object> payload = Map.of(
                 "messaging_product", "whatsapp",
                 "to", numeroFormatado,
@@ -119,15 +123,24 @@ public class WhatsAppService {
                 "template", templateBody
         );
 
+        // Log detalhado para depuração
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            logger.info("📤 Enviando template 'emprestimo_vencendo_agiota' com payload: {}",
+                    mapper.writeValueAsString(payload));
+        } catch (Exception e) {
+            logger.error("Erro ao converter payload para JSON", e);
+        }
+
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
 
         try {
             ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                logger.info("✅ Template de vencimento (agiota) enviado para {}", numeroFormatado);
+                logger.info("✅ Template de vencimento (agiota) enviado com sucesso para {}", numeroFormatado);
             } else {
-                logger.error("❌ Erro enviando template (agiota). Status: {} - {}",
+                logger.error("❌ Erro ao enviar template (agiota). Status: {} - Resposta: {}",
                         response.getStatusCode(), response.getBody());
             }
         } catch (Exception e) {
@@ -187,8 +200,6 @@ public class WhatsAppService {
         }
 
     }
-
-
 
     private String formatarNumeroInternacional(String numero) {
         if (!numero.startsWith("+")) {

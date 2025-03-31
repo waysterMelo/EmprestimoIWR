@@ -29,7 +29,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/clientes/**", "/clientes").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/emprestimo/**", "/emprestimo").hasRole("ADMIN")
-                        .requestMatchers("/dashboard/**").hasRole("ADMIN")
+                        .requestMatchers("/dashboard/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess

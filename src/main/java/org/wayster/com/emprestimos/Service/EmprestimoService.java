@@ -104,7 +104,7 @@ public class EmprestimoService {
 
     public ResumoEmprestimosVencidos buscarEmprestimosVencidosHoje(){
         LocalDate hoje = LocalDate.now();
-        List<EmprestimoEntity> emprestimosVencidos = emprestimoRepository.findByDataVencimento(hoje);
+        List<EmprestimoEntity> emprestimosVencidos = emprestimoRepository.findByDataVencimento((hoje));
 
         // Mapeia para DTO
         List<EmprestimoDto> emprestimosDto = emprestimosVencidos

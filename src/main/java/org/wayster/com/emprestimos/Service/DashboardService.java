@@ -3,10 +3,10 @@ package org.wayster.com.emprestimos.Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.wayster.com.emprestimos.Dto.LoanDashboardDTO;
+import org.wayster.com.emprestimos.Dto.ResumoFinanceiroMensalDTO;
 import org.wayster.com.emprestimos.Repository.EmprestimoRepository;
-
-import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,5 +25,19 @@ public class DashboardService {
                 ))
                 .toList();
     }
+
+    public List<ResumoFinanceiroMensalDTO> getResumoFinanceiroMensal() {
+        List<Object[]> resultados = emprestimoRepository.buscarResumoFinanceiroMensal();
+
+        return resultados.stream()
+                .map(obj -> new ResumoFinanceiroMensalDTO(
+                        ((Number) obj[0]).intValue(),    // mes
+                        ((Number) obj[1]).doubleValue(), // totalEmprestado (COALESCE garante não ser null)
+                        ((Number) obj[2]).doubleValue(), // retornoEsperado (COALESCE garante não ser null)
+                        ((Number) obj[3]).doubleValue()  // lucro (COALESCE garante não ser null)
+                ))
+                .collect(Collectors.toList()); // Usar Collectors.toList()
+    }
+
 
 }
