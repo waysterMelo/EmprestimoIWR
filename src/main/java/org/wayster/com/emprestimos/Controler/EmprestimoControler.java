@@ -2,14 +2,15 @@ package org.wayster.com.emprestimos.Controler;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.wayster.com.emprestimos.Dto.ClientesDto;
-import org.wayster.com.emprestimos.Dto.EmprestimoDto;
-import org.wayster.com.emprestimos.Dto.ResumoEmprestimosVencidos;
+import org.wayster.com.emprestimos.Dto.*;
+import org.wayster.com.emprestimos.Enums.StatusPagamento;
 import org.wayster.com.emprestimos.Service.EmprestimoService;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 @RestController
@@ -35,6 +36,7 @@ public class EmprestimoControler {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
+
 
 
     @PutMapping("/baixa/{emprestimoId}")
@@ -65,5 +67,29 @@ public class EmprestimoControler {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/pesquisar")
+    public ResponseEntity<ResultadoPesquisaDTO> pesquisarEmprestimos(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataVencimento,
+            @RequestParam(required = false) String cpf,
+            @RequestParam(required = false)StatusPagamento statusPagamento
+            ){
+
+
+        PesquisaEmprestimoDTO filtro = PesquisaEmprestimoDTO.builder()
+                .dataVencimento(dataVencimento)
+                .cpf(cpf)
+                .statusPagamento(statusPagamento)
+                .build();
+
+        ResultadoPesquisaDTO resultadoPesquisa = emprestimoService.pesquisarEmprestimos(filtro);
+
+        if (resultadoPesquisa.getEmprestimos().isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(resultadoPesquisa);
+    }
+
 
 }

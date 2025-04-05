@@ -2,6 +2,7 @@ package org.wayster.com.emprestimos.Repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.wayster.com.emprestimos.Dto.ResumoFinanceiroMensalDTO;
 import org.wayster.com.emprestimos.Entity.EmprestimoEntity;
@@ -48,4 +49,63 @@ public interface EmprestimoRepository extends JpaRepository<EmprestimoEntity, Lo
 
 
     List<EmprestimoEntity> findByDataVencimento(LocalDate dataVencimento);
+
+
+    @Query("""
+    SELECT e FROM EmprestimoEntity e
+    JOIN e.cliente c
+    WHERE c.cpf = :cpfSemFormatacao
+    ORDER BY e.dataVencimento ASC
+""")
+    List<EmprestimoEntity> findByClienteCpfSemFormatacao(
+            @Param("cpfSemFormatacao") String cpfSemFormatacao
+    );
+
+    @Query("""
+        SELECT e FROM EmprestimoEntity e
+        JOIN e.cliente c
+        WHERE c.cpf = :cpf
+        AND e.statusPagamento = :statusPagamento
+        ORDER BY e.dataVencimento ASC
+    """)
+    List<EmprestimoEntity> findByClienteCpfAndStatusPagamento(
+            @Param("cpf") String cpf,
+            @Param("statusPagamento") StatusPagamento statusPagamento
+    );
+
+    /**
+     * Busca empréstimos por CPF e data de vencimento
+     */
+    @Query("""
+        SELECT e FROM EmprestimoEntity e
+        JOIN e.cliente c
+        WHERE c.cpf = :cpf
+        AND e.dataVencimento = :dataVencimento
+        ORDER BY e.valorEmprestimo DESC
+    """)
+    List<EmprestimoEntity> findByClienteCpfAndDataVencimento(
+            @Param("cpf") String cpf,
+            @Param("dataVencimento") LocalDate dataVencimento
+    );
+
+
+    @Query("""
+        SELECT e FROM EmprestimoEntity e
+        JOIN e.cliente c
+        WHERE c.cpf = :cpf
+        AND e.dataVencimento = :dataVencimento
+        AND e.statusPagamento = :statusPagamento
+        ORDER BY e.valorEmprestimo DESC
+    """)
+    List<EmprestimoEntity> findByClienteCpfAndDataVencimentoAndStatusPagamento(
+            @Param("cpf") String cpf,
+            @Param("dataVencimento") LocalDate dataVencimento,
+            @Param("statusPagamento") StatusPagamento statusPagamento
+    );
+
+    List<EmprestimoEntity> findByStatusPagamentoOrderByDataVencimentoAsc(StatusPagamento statusPagamento);
+
+    List<EmprestimoEntity> findByDataVencimentoAndStatusPagamentoOrderByValorEmprestimoDesc(LocalDate dataVencimento, StatusPagamento statusPagamento);
+
+    List<EmprestimoEntity> findByDataVencimentoOrderByValorEmprestimoDesc(LocalDate dataVencimento);
 }

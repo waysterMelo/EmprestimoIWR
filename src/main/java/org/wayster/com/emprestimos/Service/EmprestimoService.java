@@ -2,9 +2,7 @@ package org.wayster.com.emprestimos.Service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.wayster.com.emprestimos.Dto.ClientesDto;
-import org.wayster.com.emprestimos.Dto.EmprestimoDto;
-import org.wayster.com.emprestimos.Dto.ResumoEmprestimosVencidos;
+import org.wayster.com.emprestimos.Dto.*;
 import org.wayster.com.emprestimos.EmprestimoUtils.EmprestimoUtils;
 import org.wayster.com.emprestimos.Entity.EmprestimoEntity;
 import org.wayster.com.emprestimos.Enums.StatusPagamento;
@@ -14,8 +12,10 @@ import org.wayster.com.emprestimos.Repository.EmprestimoRepository;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -162,5 +162,112 @@ public class EmprestimoService {
                     return mapperEmprestimo.toDto(emprestimo);
                 });
     }
+
+
+    public ResultadoPesquisaDTO pesquisarEmprestimos(PesquisaEmprestimoDTO filtro) {
+        List<EmprestimoEntity> resultados;
+
+        // Verificação dos critérios para definir qual query utilizar
+        if (filtro.getCpf() != null && !filtro.getCpf().isBlank()) {
+
+            if (filtro.getDataVencimento() != null) {
+                // CPF + Data de vencimento
+                if (filtro.getStatusPagamento() != null) {
+                    // CPF + Data de vencimento + Status
+                    resultados = emprestimoRepository.findByClienteCpfAndDataVencimentoAndStatusPagamento(
+                            filtro.getCpf(),
+                            filtro.getDataVencimento(),
+                            filtro.getStatusPagamento()
+                    );
+                } else {
+                    // CPF + Data de vencimento (sem status)
+                    resultados = emprestimoRepository.findByClienteCpfAndDataVencimento(
+                            filtro.getCpf(),
+                            filtro.getDataVencimento()
+                    );
+                }
+            } else if (filtro.getStatusPagamento() != null) {
+                // CPF + Status (sem data)
+                resultados = emprestimoRepository.findByClienteCpfAndStatusPagamento(
+                        filtro.getCpf(),
+                        filtro.getStatusPagamento()
+                );
+            } else {
+                // Apenas CPF
+                resultados = emprestimoRepository.findByClienteCpfSemFormatacao(filtro.getCpf());
+            }
+        } else if (filtro.getDataVencimento() != null) {
+            // Sem CPF, mas com data de vencimento
+            if (filtro.getStatusPagamento() != null) {
+                // Data + Status
+                resultados = emprestimoRepository.findByDataVencimentoAndStatusPagamentoOrderByValorEmprestimoDesc((
+                        filtro.getDataVencimento()),
+                        filtro.getStatusPagamento()
+                );
+            } else {
+                // Apenas data
+                resultados = emprestimoRepository.findByDataVencimentoOrderByValorEmprestimoDesc((
+                        filtro.getDataVencimento()
+                ));
+            }
+        } else if (filtro.getStatusPagamento() != null) {
+            // Apenas status
+            resultados = emprestimoRepository.findByStatusPagamentoOrderByDataVencimentoAsc((
+                    filtro.getStatusPagamento()
+            ));
+        } else {
+            // Nenhum critério fornecido - retorna lista vazia
+            resultados = Collections.emptyList();
+        }
+
+        // Mapeamento para o DTO com dados do cliente
+        List<EmprestimoComClienteDTO> emprestimosDtos = resultados.stream()
+                .map(this::mapToEmprestimoComClienteDTO)
+                .collect(Collectors.toList());
+
+        // Cálculo de estatísticas
+        double valorTotalEmprestado = resultados.stream()
+                .mapToDouble(EmprestimoEntity::getValorEmprestimo)
+                .sum();
+
+        double valorTotalComJuros = resultados.stream()
+                .mapToDouble(EmprestimoEntity::getValorComJuros)
+                .sum();
+
+        double lucroTotal = valorTotalComJuros - valorTotalEmprestado;
+
+        // Montagem do DTO de resultado
+        return ResultadoPesquisaDTO.builder()
+                .emprestimos(emprestimosDtos)
+                .totalEmprestimos(emprestimosDtos.size())
+                .valorTotalEmprestado(valorTotalEmprestado)
+                .valorTotalComJuros(valorTotalComJuros)
+                .lucroTotal(lucroTotal)
+                .build();
+    }
+
+
+    private EmprestimoComClienteDTO mapToEmprestimoComClienteDTO(EmprestimoEntity entity) {
+        // Usa o mapper existente para obter o DTO do empréstimo
+        EmprestimoDto emprestimoDto = mapperEmprestimo.toDto(entity);
+
+        // Cria o DTO com dados do cliente
+        return EmprestimoComClienteDTO.builder()
+                .id(emprestimoDto.getId())
+                .valorEmprestimo(emprestimoDto.getValorEmprestimo())
+                .taxaJuros(emprestimoDto.getTaxaJuros())
+                .valorComJuros(emprestimoDto.getValorComJuros())
+                .dataEmprestimo(emprestimoDto.getDataEmprestimo())
+                .dataVencimento(emprestimoDto.getDataVencimento())
+                .observacao(emprestimoDto.getObservacao())
+                .statusPagamento(emprestimoDto.getStatusPagamento())
+                .clienteId(entity.getCliente().getId())
+                .clienteNome(entity.getCliente().getNome())
+                .clienteCpf(entity.getCliente().getCpf())
+                .clienteTelefone(entity.getCliente().getTelefone())
+                .build();
+    }
+
+
 
 }
