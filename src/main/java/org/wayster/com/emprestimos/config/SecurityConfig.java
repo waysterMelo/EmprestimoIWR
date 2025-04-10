@@ -67,17 +67,17 @@ public class SecurityConfig {
     }
 
     @Bean
-public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
-    var config = new org.springframework.web.cors.CorsConfiguration();
-    config.setAllowedOrigins(List.of("http://emprestimos-iwr-react.s3-website-sa-east-1.amazonaws.com"));
-    config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    config.setAllowedHeaders(java.util.List.of("*"));
-    config.setAllowCredentials(true);
+    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
+        var config = new org.springframework.web.cors.CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://emprestimos-iwr-react.s3-website-sa-east-1.amazonaws.com"));
+        config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(java.util.List.of("*"));
+        config.setAllowCredentials(true);
 
-    var source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", config);
-    return source;
-}
+        var source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
 
 
 }

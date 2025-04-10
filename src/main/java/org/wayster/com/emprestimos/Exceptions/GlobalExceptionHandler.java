@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.wayster.com.emprestimos.UsuarioExistenteException;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -20,6 +21,16 @@ public class GlobalExceptionHandler {
                 "mensagem", ex.getMessage(),
                 "timestamp", Instant.now()
         ));
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Object> handleRuntime(RuntimeException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "error", ex.getMessage()
+                ));
     }
 
 }

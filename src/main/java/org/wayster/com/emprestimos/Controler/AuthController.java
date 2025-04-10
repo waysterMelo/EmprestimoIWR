@@ -9,7 +9,21 @@ import org.wayster.com.emprestimos.Service.UsuarioService;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*") // Libera o front-end (React)
+@CrossOrigin(
+        origins = {
+                "http://emprestimos-iwr-react.s3-website-sa-east-1.amazonaws.com",
+                "http://emprestimos-iwr-react.s3.website-sa-east-1.amazonaws.com"
+        }, 
+        allowCredentials = "true",
+        allowedHeaders = "*",
+        methods = {
+                RequestMethod.GET, 
+                RequestMethod.POST, 
+                RequestMethod.PUT, 
+                RequestMethod.DELETE, 
+                RequestMethod.OPTIONS
+        }
+)
 public class AuthController {
 
     @Autowired
@@ -37,5 +51,12 @@ public class AuthController {
         AuthResponseDTO response = usuarioService.login(request);
         return ResponseEntity.ok(response);
     }
-
+    
+    /**
+     * Endpoint para verificar se o token é válido
+     */
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyToken() {
+        return ResponseEntity.ok("Token válido");
+    }
 }
