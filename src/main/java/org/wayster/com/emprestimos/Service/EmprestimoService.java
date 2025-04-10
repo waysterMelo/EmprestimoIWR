@@ -231,7 +231,7 @@ public class EmprestimoService {
                 .sum();
 
         double valorTotalComJuros = resultados.stream()
-                .mapToDouble(EmprestimoEntity::getValorComJuros)
+                .mapToDouble(EmprestimoEntity::getValorDevidoApenasMostrar)
                 .sum();
 
         double lucroTotal = valorTotalComJuros - valorTotalEmprestado;

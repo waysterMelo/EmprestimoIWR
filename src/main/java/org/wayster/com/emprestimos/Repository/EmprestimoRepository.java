@@ -39,8 +39,8 @@ public interface EmprestimoRepository extends JpaRepository<EmprestimoEntity, Lo
         SELECT
             MONTH(e.dataEmprestimo) AS mes,
             COALESCE(SUM(e.valorEmprestimo), 0.0) AS totalEmprestado,
-            COALESCE(SUM(e.valorComJuros), 0.0) AS retornoEsperado,
-            COALESCE(SUM(e.valorComJuros) - SUM(e.valorEmprestimo), 0.0) AS lucro
+            COALESCE(SUM(e.valorDevidoApenasMostrar), 0.0) AS retornoEsperado,
+            COALESCE(SUM(e.valorDevidoApenasMostrar) - SUM(e.valorEmprestimo), 0.0) AS lucro
         FROM EmprestimoEntity e
         GROUP BY MONTH(e.dataEmprestimo)
         ORDER BY mes

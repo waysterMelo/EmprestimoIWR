@@ -1,5 +1,7 @@
 package org.wayster.com.emprestimos.config;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,8 +27,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/").permitAll()
                         .requestMatchers("/clientes/**", "/clientes").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/emprestimo/**", "/emprestimo").hasRole("ADMIN")
                         .requestMatchers("/dashboard/**").hasAnyRole("ADMIN", "USER")
@@ -62,6 +65,19 @@ public class SecurityConfig {
         filter.setUsuarioService(usuarioService);
         return filter;
     }
+
+    @Bean
+public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
+    var config = new org.springframework.web.cors.CorsConfiguration();
+    config.setAllowedOrigins(List.of("http://emprestimos-iwr-react.s3-website-sa-east-1.amazonaws.com"));
+    config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    config.setAllowedHeaders(java.util.List.of("*"));
+    config.setAllowCredentials(true);
+
+    var source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+    return source;
+}
 
 
 }
