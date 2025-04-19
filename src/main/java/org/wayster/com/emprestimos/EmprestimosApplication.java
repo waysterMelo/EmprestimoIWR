@@ -8,7 +8,26 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @SpringBootApplication
 @EnableWebMvc
+<<<<<<< HEAD
 public class EmprestimosApplication {
+=======
+public class EmprestimosApplication implements WebMvcConfigurer {
+
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins(
+                        "http://emprestimos-iwr-react.s3-website-sa-east-1.amazonaws.com",
+                        "https://d3duc5wtqfusar.cloudfront.net"
+                )
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .maxAge(3600);
+    }
+>>>>>>> 25dd02162bded84a03c43f5e01452593db0f457e
+
 
     public static void main(String[] args) {
         SpringApplication.run(EmprestimosApplication.class, args);
