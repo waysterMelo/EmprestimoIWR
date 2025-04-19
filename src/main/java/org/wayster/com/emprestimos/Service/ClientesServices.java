@@ -28,11 +28,16 @@ public class ClientesServices {
 
     @Transactional
     public ClientesDto cadastrarCliente(ClientesDto clientesDto) {
+
+        Optional.ofNullable(clientesDto.getCpf()).map(cpf -> cpf.replaceAll("[^0-9]", "")).ifPresent(clientesDto::setCpf);
+
         // Usa o mapper para converter DTO para Entity
         ClientesEntity clienteEntity = mapperEmprestimo.toEntity(clientesDto);
 
         // Salva no banco de dados
         ClientesEntity clienteSalvo = clientesRepository.save(clienteEntity);
+
+
 
         // Usa o mapper para converter Entity de volta para DTO
         return mapperEmprestimo.toDto(clienteSalvo);
@@ -65,26 +70,18 @@ public class ClientesServices {
     public Optional<ClientesDto> atualizarCliente(Long id, ClientesDto clienteDto) {
         return clientesRepository.findById(id)
                 .map(clienteExistente -> {
-                    // Atualiza os campos do cliente existente
-                    clienteExistente.setNome(clienteDto.getNome());
-                    clienteExistente.setEmail(clienteDto.getEmail());
-                    clienteExistente.setTelefone(clienteDto.getTelefone());
-                    clienteExistente.setCpf(clienteDto.getCpf());
-                    clienteExistente.setEndereco(clienteDto.getEndereco());
-                    clienteExistente.setBairro(clienteDto.getBairro());
-                    clienteExistente.setCidade(clienteDto.getCidade());
-                    clienteExistente.setEstado(clienteDto.getEstado());
-                    clienteExistente.setNumero(clienteDto.getNumero());
-                    // Salva as alterações no banco de dados
-                    ClientesEntity clienteAtualizado = clientesRepository.save(clienteExistente);
-
-                    // Converte a entidade atualizada para DTO e retorna
-                    return mapperEmprestimo.toDto(clienteAtualizado);
+                    // … texto existente
+                    if (clienteDto.getFoto() != null) {
+                        clienteExistente.setFoto(clienteDto.getFoto());
+                    }
+                    ClientesEntity atualizado = clientesRepository.save(clienteExistente);
+                    return clientesMapper.toDto(atualizado);
                 });
     }
 
 
-     public String deletarCliente(Long id){
+
+    public String deletarCliente(Long id){
          // Verifica se o cliente existe
          ClientesEntity cliente  = clientesRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Cliente com ID " + id + " não encontrado."));
 

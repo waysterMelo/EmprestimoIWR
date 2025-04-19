@@ -42,11 +42,8 @@ public class ClientesEntity {
     private String estado;
     private String numero;
 
-    @Column(name = "limite_pagamento")
-    private BigDecimal limitePagamento;
-
     @Lob
-    @Column(columnDefinition = "BLOB")
+    @Column(columnDefinition = "LONGBLOB")
     private byte[] foto;
 
     @Column(name = "data_cadastro")

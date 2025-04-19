@@ -50,7 +50,6 @@ public class ClienteController {
                     .email(email)
                     .telefone(telefone)
                     .cpf(cpf)
-                    .limitePagamento(new BigDecimal(limitePagamento))
                     .foto(foto != null ? foto.getBytes() : null)
                     .endereco(endereco)
                     .bairro(bairro)
@@ -65,8 +64,6 @@ public class ClienteController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
-
-
 
 
     @GetMapping("/buscar-por-cpf/{cpf}")
@@ -84,15 +81,41 @@ public class ClienteController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
+    @PutMapping(
+            path = "/{id}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<ClientesDto> atualizarCliente(
+            @PathVariable Long id,
+            @RequestPart("nome") String nome,
+            @RequestPart("email") String email,
+            @RequestPart("telefone") String telefone,
+            @RequestPart("cpf") String cpf,
+            @RequestPart(value = "foto", required = false) MultipartFile foto,
+            @RequestPart("endereco") String endereco,
+            @RequestPart("bairro") String bairro,
+            @RequestPart("cidade") String cidade,
+            @RequestPart("estado") String estado,
+            @RequestPart("numero") String numero
+    ) throws IOException {
+        // Monta o DTO manualmente
+        ClientesDto dto = ClientesDto.builder()
+                .nome(nome)
+                .email(email)
+                .telefone(telefone)
+                .cpf(cpf)
+                .foto(foto != null && !foto.isEmpty() ? foto.getBytes() : null)
+                .endereco(endereco)
+                .bairro(bairro)
+                .cidade(cidade)
+                .estado(estado)
+                .numero(numero)
+                .build();
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ClientesDto> atualizarCliente(@PathVariable Long id, @RequestBody ClientesDto clienteDto){
-            return clientesServices.atualizarCliente(id, clienteDto)
-                    .map(ResponseEntity::ok)
-                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-        }
-
-
+        return clientesServices.atualizarCliente(id, dto)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deletarCliente(@PathVariable Long id){

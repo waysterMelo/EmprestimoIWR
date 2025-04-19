@@ -24,7 +24,6 @@ public class MapperEmprestimo {
                         .cidade(dto.getCidade())
                         .estado(dto.getEstado())
                         .numero(dto.getNumero())
-                        .limitePagamento(dto.getLimitePagamento())
                         .foto(dto.getFoto())
                         .build())
                 .orElse(null);
@@ -43,7 +42,6 @@ public class MapperEmprestimo {
                         .cidade(entity.getCidade())
                         .estado(entity.getEstado())
                         .numero(entity.getNumero())
-                        .limitePagamento(entity.getLimitePagamento())
                         .foto(entity.getFoto())
                         .dataCadastro(entity.getDataCadastro())
                         .build())

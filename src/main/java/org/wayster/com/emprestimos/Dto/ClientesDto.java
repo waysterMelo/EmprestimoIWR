@@ -40,10 +40,7 @@ public class ClientesDto {
     private String numero;
 
     @NotNull(message = "Limite de pagamento é obrigatório")
-    @Positive(message = "Limite de pagamento deve ser positivo")
-    private BigDecimal limitePagamento;
 
-    @Column(columnDefinition = "LONGBLOB")
     private byte[] foto;
 
     private LocalDateTime dataCadastro;
